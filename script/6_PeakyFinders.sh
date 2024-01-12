@@ -255,12 +255,19 @@ elif [ ${U_arg} == 'MACS2' ]; then
     module load macs2
 
     for input in "${@:1}"; do
-        for file in ${input}/*${N_arg}*.bam; do
+        for file in ${input}/*${N_arg}*.bam; do    
             # Define current tag
             current_tag=`echo ${file} | sed -e "s@${input}/@@g" | sed -e "s@${N_arg}@@g" | sed -e 's@\.bam@@g'`
             # Create output dir
             newdir=MACS2/Peaks/${current_tag}
             mkdir -p ${newdir}
+
+            # Set variables for the run :
+            narrrow_peak=MACS2/Peaks/${current_tag}/${current_tag}_peaks.narrowPeak
+            peaks_bed=MACS2/Peaks/${current_tag}/${current_tag}_peaks_sorted.bed
+            bedgraph=MACS2/Peaks/${current_tag}/${current_tag}_peaks_sorted.bedgraph
+            bigwig=MACS2/Peaks/${current_tag}/${current_tag}_peaks_sorted.bw
+            
             # Launch MACS2
             echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
             macs2 callpeak \
@@ -270,7 +277,10 @@ elif [ ${U_arg} == 'MACS2' ]; then
             --shift ${H_arg} \
             --extsize ${E_arg} \
             -n ${current_tag} \
-            --outdir ${newdir}" | qsub -N MACS2_${current_tag}
+            --outdir ${newdir}\n\
+            grep -v '^#' ${narrow_peak} | awk -v OFS='\t' '{print \$1,\$2,\$3,\$4,\$5,\$6}' | bedtools sort > ${peaks_bed} \n\
+            genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph} \n\
+            bedGraphToBigWig ${bedgraph} ${1} ${bigwig}" | qsub -N MACS2_${current_tag}
         done
     done
 fi
