@@ -3,11 +3,12 @@
 ################################################################################################################
 ### HELP -------------------------------------------------------------------------------------------------------
 ################################################################################################################
+script_name='7_PeakyFinders.sh'
 
 # Get user id for custom manual pathways
 usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
 
-# Text font variabes
+# Text font variables
 END='\033[0m'
 BOLD='\033[1m'
 UDL='\033[4m'
@@ -17,19 +18,25 @@ Help()
 {
 echo -e "${BOLD}####### PEAKYFINDER MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-    sh PeakyFinder.sh [options] <chrom_size> <input_dir1> <...>\n\n\
+    sh ${script_name} [options] <chrom_size> <input_dir1> <...>\n\n\
+
 ${BOLD}DESCRIPTION${END}\n\
+    Perform peak calling from BAM files using HOMER or MACS2.\n\
     Prepares tag files required for HOMER processing from BAM files, and performs peak calling.\n\
     Peaks thus called are saved in a .txt file, sorted and then saved in .bed .bedgraph and .bw files. \n\
     It creates new folders './HOMER/Tags/<tag_name>' and './HOMER/Peaks/<tag_name>' in which output files are stored.\n\n\
 
-${BOLD}OPTIONS${END}\n\
+${BOLD}OPTIONS${END}\n\n\
+
+${BOLD}Common Options${END}\n\
     ${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
         Define a suffix that input files must share to be considered. Allows to exclude BAM files that are unfiltered or unwanted.\n\
-        Default = _sorted_unique_filtered\n\n\
+        Default = '_sorted_unique_filtered'\n\n\
     ${BOLD}-U${END} ${UDL}toolName${END}, ${BOLD}U${END}sedTool\n\
         Define tool used for peak calling. Must be in 'HOMER' or 'MACS2'.\n\
         Default = 'HOMER'\n\n\
+
+${BOLD}HOMER Options${END}\n\
     ${BOLD}-S${END} ${UDL}size${END}, fragment${BOLD}S${END}ize\n\
         Define fragment size sequenced.\n\
         Default = auto\n\n\
@@ -59,8 +66,19 @@ ${BOLD}OPTIONS${END}\n\
         Define required minimal tag value to consider peaks.\n\
         Default=2\n\n\
 
-For more details, please see HOMER manual \n\ 
-(http://homer.ucsd.edu/homer/ngs/peaks.html).\n\n\
+    For more details, please see HOMER manual \n\ 
+    (http://homer.ucsd.edu/homer/ngs/peaks.html).\n\n\
+    
+${BOLD}MACS2 Options${END}\n\n\
+    ${BOLD}-G${END} ${UDL}size${END}, ${BOLD}G${END}enomSize\n\
+        \n\
+        Default=1.87e9\n\n\
+    ${BOLD}-H${END} ${UDL}integer${END}, S${BOLD}h${END}ift\n\
+        \n\
+        Default=50\n\n\
+    ${BOLD}-E${END} ${UDL}integer${END}, ${BOLD}E${END}xtend\n\
+        \n\
+        Default=100\n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
     ${BOLD}<chrom_size>${END}\n\
@@ -78,9 +96,7 @@ ${BOLD}ARGUMENTS${END}\n\
         Several directories can be specified as argument in the same command line, allowing processing of multiple models simultaneously.\n\n\  
 
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh 7_PeakyFinder.sh -U 'HOMER' ${BOLD}-N${END} _unique_filtered ${BOLD}-S${END} 50 ${BOLD}-M${END} dnase ${BOLD}-I${END} none ${BOLD}-F${END} none ${BOLD}-L${END} 4 ${BOLD}-C${END} 2 ${BOLD}/LAB-DATA/BiRD/users/jleger/Ref/Genome/mm39.chrom.sizes Mapped/mm39/BAM${END}\n\
-    or\n\
-    sh 7_PeakyFinder.sh -U 'MACS2' ${BOLD}-N${END} _unique_filtered ${BOLD}-S${END} 50 ${BOLD}-M${END} dnase ${BOLD}-I${END} none ${BOLD}-F${END} none ${BOLD}-L${END} 4 ${BOLD}-C${END} 2 ${BOLD}/LAB-DATA/BiRD/users/jleger/Ref/Genome/mm39.chrom.sizes Mapped/mm39/BAM${END}\n"
+    sh ${script_name} -U 'HOMER' ${BOLD}-N${END} _unique_filtered ${BOLD}-S${END} 50 ${BOLD}-M${END} dnase ${BOLD}-I${END} none ${BOLD}-F${END} none ${BOLD}-L${END} 4 ${BOLD}-C${END} 2 ${BOLD}/LAB-DATA/BiRD/users/${usr}/Ref/Genome/mm39.chrom.sizes Mapped/mm39/BAM${END}\n"
 }
 
 ################################################################################################################
@@ -97,9 +113,14 @@ F_arg=4
 L_arg=4
 C_arg=2
 T_arg=2
+#
+G_arg=1.87e9
+H_arg=50
+E_arg=100
+
 
 # Change default values if another one is precised
-while getopts ":N:U:S:M:I:F:L:C:T:" option; do
+while getopts ":N:U:S:M:I:F:L:C:T:G:H:E:" option; do
     case $option in
         N) # NAME OF FILE (SUFFIX)
             N_arg=${OPTARG};;
@@ -119,10 +140,16 @@ while getopts ":N:U:S:M:I:F:L:C:T:" option; do
             C_arg=${OPTARG};;
         T) # TAG THRESHOLD
             T_arg=${OPTARG};;
+        G) # MACS2 GENOME SIZE
+            G_arg=${OPTARG};;
+        H) # MACS2 SHIFT
+            H_arg=${OPTARG};;
+        E) # MAC2 EXTEND
+            E_arg=${OPTARG};;
         \?) # Error
             echo "Error : invalid option"
-            echo "      Allowed options are [-N|-U|-S|-M|-I|-F|-L|-C|-T]"
-            echo "      Enter sh PeakyFinder.sh help for more details"
+            echo "      Allowed options are [-N|-U|-S|-M|-I|-F|-L|-C|-T|-G|-H|-E]"
+            echo "      Enter 'sh ${script_name} help' for more details"
             exit;;
         esac
 done
@@ -159,13 +186,13 @@ if [ $# -eq 1 ] && [ $1 == "help" ]; then
     exit
 elif [ ${U_arg} == 'HOMER' ] && [ $# -lt 2 ]; then
     # Error if no input directory is provided
-    echo 'Error synthax : please use following synthax when using HOMER'
-    echo '      sh PeakyFinder.sh [options] <chr_size_file> <input_dir1> <...>'
+    echo "Error synthax : please use following synthax when using HOMER"
+    echo "      sh ${script_name} [options] <chr_size_file> <input_dir1> <...>"
     exit
 elif [ ${U_arg} == 'MACS2' ] && [ $# -lt 1 ]; then
     # Error if no input directory is provided
-    echo 'Error synthax : please use following synthax when using MACS2'
-    echo '      sh PeakyFinder.sh [options] <input_dir1> <...>'
+    echo "Error synthax : please use following synthax when using MACS2"
+    echo "      sh ${script_name} [options] <chr_size_file> <input_dir1> <...>"
     exit
 else
     # For each input file given as argument
@@ -188,15 +215,6 @@ fi
 module load samtools/1.15.1
 module load bedtools/2.30.0
 module load ucsc-bedgraphtobigwig/377
-
-# For DNAse
-# sh 7_PeakyFinder.sh -N _merged -S 50 -M dnase -I none -F none -L 4 -C 2 /SCRATCH-BIRD/users/jleger/Data/Ref/Genome/mm39.chrom.sizes Mapped/mm39/BAM
-
-# sh 7_PeakyFinder.sh -N _unique_filtered -S 50 -M dnase -I none -F none -L 4 -C 2 /SCRATCH-BIRD/users/jleger/Data/Ref/Genome/mm39.chrom.sizes Mapped/mm39/BAM
-
-# For ChIC-seq
-# sh 7_PeakyFinder.sh -N _merged -S 50 -M factor -I none -F none -L 4 -C 2 /SCRATCH-BIRD/users/jleger/Data/Ref/Genome/mm39.chrom.sizes Mapped/mm39/BAM
-
 
 if [ ${U_arg} == 'HOMER' ]; then
     module load homer/4.11
@@ -247,20 +265,12 @@ elif [ ${U_arg} == 'MACS2' ]; then
             echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
             macs2 callpeak \
             -t ${file} \
-            -f BAM -g 1.87e9 --nomodel --shift 50 --extsize 100\
+            -f BAM -g ${G_arg} 
+            --nomodel \
+            --shift ${H_arg} \
+            --extsize ${E_arg} \
             -n ${current_tag} \
             --outdir ${newdir}" | qsub -N MACS2_${current_tag}
         done
     done
 fi
-
-
-
-
-
-
-
-
-
-
-
