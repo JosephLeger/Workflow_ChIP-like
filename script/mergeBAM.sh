@@ -3,11 +3,12 @@
 ################################################################################################################
 ### HELP -------------------------------------------------------------------------------------------------------
 ################################################################################################################
+script_name='mergeBAM.sh'
 
 # Get user id for custom manual pathways
 usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
 
-# Text font variabes
+# Text font variables
 END='\033[0m'
 BOLD='\033[1m'
 UDL='\033[4m'
@@ -17,16 +18,17 @@ Help()
 {
 echo -e "${BOLD}####### MERGEBAM MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-    sh mergeBAM.sh [options] <input_dir> <sheet_sample.csv>\n\n\
+    sh ${script_name} [options] <input_dir> <sheet_sample.csv>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
     Merge BAM files matching a pattern into a unique BAM file using samtools merge.\n\
-    Used to call peaks on an accumulation of experiments to have higher signals.\n\n\
+    Can be used for calling peaks on an accumulation of experiments to have higher signals.\n\
+    It requires sample information in a provided .csv file (see example_sheet_sample.csv).\n\n\
 
 ${BOLD}OPTIONS${END}\n\
     ${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
         Define a suffix that input files must share to be considered. Allows to exclude BAM files that are unfiltered or unwanted.\n\
-        Default = _sorted_unique_filtered\n\n\
+        Default = '_sorted_unique_filtered'\n\n\
     ${BOLD}-M${END} ${UDL}mark${END}, ${BOLD}M${END}ark\n\
         Define epigenetic mark present in <sheet_sample.csv> to consider for merging.\n\
         Default = <current_dirname>\n\n\
@@ -42,7 +44,7 @@ ${BOLD}ARGUMENTS${END}\n\
         Path to .csv files containing sample information stored in 4 columns : 1)Sample_ID 2)Filename[not used] 3)Condition1 4)Condition2.\n\n\
 
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh mergeBAM.sh ${BOLD}-N${END} _sorted_unique_filtered ${BOLD}-M${END} H3K4me3 ${BOLD}Mapped/mm39/BAM ../SRA_ChIC-seq.csv${END}\n"
+    sh ${script_name} ${BOLD}-N${END} _sorted_unique_filtered ${BOLD}-M${END} H3K4me3 ${BOLD}-R${END} true ${BOLD}Mapped/mm39/BAM ../SRA_ChIC-seq.csv${END}\n"
 }
 
 ################################################################################################################
@@ -65,8 +67,8 @@ while getopts ":M:N:R:" option; do
             R_arg=${OPTARG};;
         \?) # Error
             echo "Error : invalid option"
-            echo "      Allowed options are [-N|-M|-S]"
-            echo "      Enter sh mergeBAM.sh help for more details"
+            echo "      Allowed options are [-N|-M|-R]"
+            echo "      Enter 'sh ${script_name} help' for more details"
             exit;;
         esac
 done
@@ -93,8 +95,8 @@ if [ $# -eq 1 ] && [ $1 == "help" ]; then
     exit
 elif [ $# != 2 ]; then
     # Error if arguments are missing
-    echo 'Error synthax : please use following synthax'
-    echo '      sh mergeBAM.sh <input_dir> <data_sheet.csv>'
+    echo "Error synthax : please use following synthax"
+    echo "      sh ${script_name} <input_dir> <data_sheet.csv>"
     exit
 else
     # Count .bam files matching -N pattern in provided directory
@@ -111,12 +113,6 @@ fi
 ################################################################################################################
 
 module load samtools/1.15.1
-
-# For DNAse
-# sh 6_mergeBAM.sh -N _sorted_unique_filtered -R true Mapped/mm39/BAM SRA_DNAse-seq.csv
-
-# For ChIC
-# sh 6_mergeBAM.sh -N _sorted_unique_filtered -R true Mapped/mm39/BAM ../SRA_ChIC-seq.csv
 
 # Establish conditions_list which contains already visited condition2 (celltype)
 conditions_list=""
@@ -143,7 +139,7 @@ while IFS=',' read -r sra filename cond1 cond2; do
                 sra_files="${sra_files} ${newfile}"
             fi
         done < ${2}
-        
+            
         echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
         samtools merge -o ${1}/${M_arg}_${cond2}${newsuffix} ${sra_files} \n\
         samtools index ${1}/${M_arg}_${cond2}${newsuffix}" | qsub -N mergeBAM_${M_arg}_${cond2}
