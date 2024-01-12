@@ -3,11 +3,12 @@
 ################################################################################################################
 ### HELP -------------------------------------------------------------------------------------------------------
 ################################################################################################################
+script_name='5_BowtieCheck.sh'
 
 # Get user id for custom manual pathways
 usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
 
-# Text font variabes
+# Text font variables
 END='\033[0m'
 BOLD='\033[1m'
 UDL='\033[4m'
@@ -17,31 +18,33 @@ Help()
 {
 echo -e "${BOLD}####### FILTER MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-    sh Filter.sh [options] <input_dir1> <...>\n\n\
+    sh ${script_name} [options] <input_dir1> <...>\n\n\
+
 ${BOLD}DESCRIPTION${END}\n\
-    Perform identification of duplicated and low quality reads in sorted BAM files using samtools and picard.\n\
+    Perform identification of duplicated and low quality reads in sorted SAM files, and convert SAM to BAM using samtools and picard.\n\
     It generates '_Duplist_<filename>.txt' which contains duplicates list and '<filename>_unique_filtered.bam' files.\n\n\
 
 ${BOLD}OPTIONS${END}\n\
     ${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
         Define a suffix that input files must share to be considered. Allows to exclude BAM files that are unfiltered or unwanted.\n\
-        Default = _sorted\n\n\
+        Default = '_sorted'\n\n\
     ${BOLD}-T${END} ${UDL}threshold${END}, ${BOLD}T${END}hresholdQuality\n\
         Define quality threshold for read filtering.\n\
         Default = 10\n\n\
     ${BOLD}-R${END} ${UDL}boolean${END}, ${BOLD}R${END}emoveDuplicates\n\
-        Whether remove duplicates or not.\n\
+        Whether remove duplicated or not.\n\
         Default = true\n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
     ${BOLD}<input_dir>${END}\n\
         Directory containing .bam files to process.\n\
         It usually corresponds to 'Mapped/<model>/BAM'.\n\n\
+
     ${BOLD}<...>${END}\n\
         Several directories can be specified as argument in the same command line, allowing processing of multiple models simultaneously.\n\n\  
 
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh Filter.sh ${BOLD}-N${END} _sorted ${BOLD}-T${END} 10 ${BOLD}-R${END} false ${BOLD}Mapped/mm39/BAM${END}\n"
+    sh ${script_name} ${BOLD}-N${END} _sorted ${BOLD}-T${END} 10 ${BOLD}-R${END} false ${BOLD}Mapped/mm39/BAM${END}\n"
 }
 
 ################################################################################################################
@@ -64,8 +67,8 @@ while getopts ":T:N:R:" option; do
             R_arg=${OPTARG};;
         \?) # Error
             echo "Error : invalid option"
-            echo "      Allowed options are [-N|-T]"
-            echo "      Enter sh Filter.sh help for more details"
+            echo "      Allowed options are [-N|-T|-R]"
+            echo "      Enter 'sh ${script_name} help' for more details"
             exit;;
         esac
 done
@@ -87,7 +90,6 @@ case $R_arg in
         exit;;
 esac
 
-
 # Deal with options [-N|-T] and arguments [$1|$2|...]
 shift $((OPTIND-1))
 
@@ -100,8 +102,8 @@ if [ $# -eq 1 ] && [ $1 == "help" ]; then
         exit
 elif [ $# == 0 ]; then
         # Error if no input directory is provided
-        echo 'Error synthax : please use following synthax'
-        echo '      sh Filter.sh [options] <input_dir1> <...>'
+        echo "Error synthax : please use following synthax"
+        echo "      sh ${script_name} [options] <input_dir1> <...>"
         exit
 else
     # For each input file given as argument
@@ -122,9 +124,6 @@ fi
 
 module load samtools/1.15.1
 module load picard/2.23.5
-
-# For both
-# sh 5_Filter.sh -N _sorted -T 10 Mapped/mm39/BAM
 
 # For each input file given as argument
 for input in "$@"; do   
