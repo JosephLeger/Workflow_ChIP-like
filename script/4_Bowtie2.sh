@@ -18,7 +18,7 @@ Help()
 {
 echo -e "${BOLD}####### BOWTIE2 MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-    sh ${script_name} <SE|PE> <input_dir> <refindex>\n\n\
+    sh ${script_name} [options] <SE|PE> <input_dir> <refindex>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
     Perform alignement on genome reference from paired or unpaired fastq files using Bowtie2.\n\
