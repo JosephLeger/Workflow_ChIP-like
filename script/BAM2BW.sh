@@ -3,6 +3,7 @@
 ################################################################################################################
 ### HELP -------------------------------------------------------------------------------------------------------
 ################################################################################################################
+script_name='BAM2BW'
 
 # Get user id for custom manual pathways
 usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
@@ -17,7 +18,7 @@ Help()
 {
 echo -e "${BOLD}####### BAM2BW MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-    sh Bam2BW.sh [options] <input_dir1> <...>\n\n\
+    sh ${script_name} [options] <input_dir1> <...>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
     Perform conversion of BAM files to Trace files in bigwig format using deeptools bamCoverage.\n\
@@ -45,7 +46,7 @@ ${BOLD}ARGUMENTS${END}\n\
         Several directories can be specified as argument in the same command line, allowing processing of multiple models simultaneously.\n\n\  
 
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh Bam2BW.sh ${BOLD}-N${END} _sorted_unique_filtered ${BOLD}-F${END} bigwig ${BOLD}-M${END} RPKM ${BOLD}-R${END} true ${BOLD}Mapped/mm39/BAM${END}\n"
+    sh ${script_name} ${BOLD}-N${END} _sorted_unique_filtered ${BOLD}-F${END} bigwig ${BOLD}-M${END} RPKM ${BOLD}-R${END} true ${BOLD}Mapped/mm39/BAM${END}\n"
 }
 
 ################################################################################################################
@@ -124,8 +125,8 @@ if [ $# -eq 1 ] && [ $1 == "help" ]; then
     exit
 elif [ $# == 0 ]; then
     # Error if no input directory is provided
-    echo 'Error synthax : please use following synthax'
-    echo '      sh Bam2BW.sh [options] <input_dir1> <...>'
+    echo "Error synthax : please use following synthax"
+    echo "      sh ${script_name} [options] <input_dir1> <...>"
     exit
 else
     # For each input file given as argument
@@ -134,7 +135,7 @@ else
         files=$(shopt -s nullglob dotglob; echo ${input}/*${N_arg}*.bam)
         if (( !${#files} )); then
             # Error if current provided directory is empty or does not exists
-            echo -e "Error : can not find files to sort in ${input} directory. Please make sure the provided input directory exists, and contains .sam files."
+            echo -e "Error : can not find files to sort in ${input} directory. Please make sure the provided input directory exists, and contains .bam files."
             exit
         fi
     done
