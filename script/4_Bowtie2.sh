@@ -3,11 +3,12 @@
 ################################################################################################################
 ### HELP -------------------------------------------------------------------------------------------------------
 ################################################################################################################
+script_name='4_Bowtie2.sh'
 
 # Get user id for custom manual pathways
 usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
 
-# Text font variabes
+# Text font variables
 END='\033[0m'
 BOLD='\033[1m'
 UDL='\033[4m'
@@ -17,26 +18,38 @@ Help()
 {
 echo -e "${BOLD}####### BOWTIE2 MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-    sh Bowtie2.sh <SE|PE> <input_dir> <refindex>\n\n\
+    sh ${script_name} <SE|PE> <input_dir> <refindex>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
     Perform alignement on genome reference from paired or unpaired fastq files using Bowtie2.\n\
-    It creates a new folder './Mapped/<model>/SAM' in which aligned SAM files and outputs are stored.\n\n\
+    It creates new folders './Mapped/<model>/SAM' and './Mapped/<model>/BAM' in which resulting aligned files are stored.\n\
+    Generated BAM files are automatically sorted using picard for following steps.\n\n\
+
+${BOLD}OPTIONS${END}\n\
+    ${BOLD}-U${END} ${UDL}boolean${END}, ${BOLD}U${END}nalignedReadsRemovam\n\
+        Whether remove unaligned reads to output file. \n\
+        Default = 'False'\n\n\
+    ${BOLD}-L${END} ${UDL}boolean${END}, ${BOLD}L${END}ocalAlignment\n\
+        Whether use Local alignment instead of global.\n\
+        Default = 'False'\n\n\
+    ${BOLD}-N${END} ${UDL}integer${END}, ${BOLD}N${END}umberOfMismatch\n\
+        Maximum number of mismatch allowed while perform alignment. \n\
+        Default = 0\n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
     ${BOLD}<SE|PE>${END}\n\
         Define whether fastq files are Single-End (SE) or Paired-End (PE).\n\
         If SE is provided, each file is aligned individually and give rise to an output file stored in './Mapped/<model>/SAM' directory.\n\
-        If PE is provided, files are aligned in pair (R1 and R2), giving rise to a single output files from a pair of input files.\n\n\
+        If PE is provided, files are aligned in pair (R1 and R2), giving rise to a single output file from a pair of input files.\n\n\
     ${BOLD}<input_dir>${END}\n\
         Directory containing .fastq.gz or .fq.gz files to use as input for alignment.\n\
-        It usually corresponds to 'Raw' or 'Trimmed'.\n\n\
+        It usually corresponds to 'Raw' or 'Trimmed/Trimmomatic'.\n\n\
     ${BOLD}<refindex>${END}\n\
         Path to reference previously indexed using bowtie2-build.\n\
         Provided path must be ended by reference name (prefix common to files).\n\n\
-
+        
 ${BOLD}EXAMPLE USAGE${END}\n\
-    ${BOLD}sh Bowtie2.sh PE Trimmed/Paired /LAB-DATA/BiRD/users/${usr}/Ref/refdata-Bowtie2-mm39/mm39${END}\n"
+    ${BOLD}sh ${script_name} PE Trimmed/Trimmomatic/Paired /LAB-DATA/BiRD/users/${usr}/Ref/refdata-Bowtie2-mm39/mm39${END}\n"
 }
 
 ################################################################################################################
@@ -60,11 +73,10 @@ while getopts ":U:S:L:T:M:I:" option; do
         \?) # Error
             echo "Error : invalid option"
             echo "      Allowed options are [-U|-L|-N]"
-            echo "      Enter 'sh Bowtie2.sh help' for more details"
+            echo "      Enter 'sh ${script_name} help' for more details"
             exit;;
     esac
 done
-
 
 # Checking if provided option values are correct
 case $U_arg in
@@ -89,7 +101,6 @@ esac
 # Deal with options [-U|-L|-N] and arguments [$1|$2]
 shift $((OPTIND-1))
 
-
 ################################################################################################################
 ### ERRORS -----------------------------------------------------------------------------------------------------
 ################################################################################################################
@@ -102,8 +113,8 @@ if [ $# -eq 1 ] && [ $1 == "help" ]; then
     exit
 elif [ $# -lt 3 ]; then
     # Error if no directory is provided
-    echo 'Error synthax : please use following synthax'
-    echo '      sh Bowtie2.sh <SE|PE> <input_dir> <refindex>'
+    echo "Error synthax : please use following synthax"
+    echo "      sh ${script_name} <SE|PE> <input_dir> <refindex>"
     exit
 elif (( !${#files} )); then
     # Error if provided directory is empty or does not exists
@@ -115,8 +126,8 @@ else
         PE|SE) 
             ;;
         *) 
-            echo 'Error Synthax : please use following synthax'
-            echo '       sh Bowtie2.sh <SE|PE> <input_dir> <refindex>'
+            echo "Error Synthax : please use following synthax"
+            echo "       sh ${script_name} <SE|PE> <input_dir> <refindex>"
             exit;;
     esac
 fi
@@ -128,10 +139,6 @@ fi
 module load bowtie2/2.5.1
 module load samtools/1.15.1
 module load picard/2.23.5
-
-# For both
-# sh 4_Bowtie2.sh SE Trimmed /SCRATCH-BIRD/users/jleger/Data/Ref/refdata-Bowtie2-mm39/mm39
-# sh 4_Bowtie2.sh PE Trimmed/Paired /SCRATCH-BIRD/users/jleger/Data/Ref/refdata-Bowtie2-mm39/mm39
 
 # Create output directories
 model=`echo $3 | sed -r 's/^.*\/(.*)$/\1/'`
