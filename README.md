@@ -1,7 +1,25 @@
-# Epigenetics
-Custom pipeline for epigenetic profiling, chromatin accessibility and CUT&amp;RUN analysis
+# Workflow description
+This customized workflow is designed to perform the processing steps of epigenetic profiling, chromatin accesibility or ChIP data.  
 
 <img src="https://github.com/JosephLeger/Epigenetics/blob/main/img/pipeline.png"  width="60%" height="60%">
+
+### Summary of Steps
+
+1. **Quality Check :** Quality of each FASTQ file is performed using **FastQC**. A quality control report per file is then obtained, providing information on the quality of the bases, the length of the reads, the presence of adapters, etc. To make it easier to visualize the results, all reports are then pooled and analyzed simultaneously using **MultiQC**.
+
+2. **Trimming :** According to the conclusions drawn from the quality control of the reads, a trimming step is often necessary. This step makes it possible to clean the reads, for example by eliminating sequences enriched in adapters, or by trimming poor quality bases at the ends of the reads. For this, the **Trimmomatic** tool needs to be provided with the adapter sequences used for sequencing if an enrichment has been detected.  
+A quality control is carried out on the FASTQ files resulting from trimming to ensure that the quality obtained is satisfactory.
+Trimming script includes the optional use of **Clumpify** (bbmap) to remove duplicated reads at FASTQ stage and to optimize file organization.  
+
+4. **Alignment to the Genome :** This step consists of aligning the FASTQ files to a previously indexed reference genome in order to identify the regions from which the reads come. This workflow uses **Bowtie2**, a widely used tool for read mapping, to generate sorted BAM files.  
+*Note : it requires a genome reference indexing step, or to download already indexed genome.*  
+
+5. **Filtering and Indexing BAM :** If it hasn't already been done duplicated reads are removed, and reads with low alignment scores are filtered out using **Picard** and **SamTools**. Resulting BAM files are then indexed for following steps.  
+
+6. **Peak Calling :** To identify notable regions, aligned reads are then convert to peaks regions. This workflow provides two different widely used peak caller, **MACS2** and **HOMER**. Both will generate specific peak files, that are then converted into BED, BEDGRAPH and BIGWIG formats.  
+
+
+# Indexing the reference Genome
 
 # Requirements
 ```
