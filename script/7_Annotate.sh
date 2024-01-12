@@ -3,11 +3,12 @@
 ################################################################################################################
 ### HELP -------------------------------------------------------------------------------------------------------
 ################################################################################################################
+script_name='8_Annotate.sh'
 
 # Get user id for custom manual pathways
 usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
 
-# Text font variabes
+# Text font variables
 END='\033[0m'
 BOLD='\033[1m'
 UDL='\033[4m'
@@ -17,17 +18,17 @@ Help()
 {
 echo -e "${BOLD}####### ANNOTATE MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-    sh Annotate.sh [options] <input_dir> <fasta_file> <gtf_file>\n\n\
+    sh ${script_name} [options] <input_dir> <fasta_file> <gtf_file>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
-    Annotates peaks previously called by describing associated genome regions and genes, and performs motif enrichment research.\n\n\
+    Annotates peaks previously called by describing associated genome regions and genes, and performs motif enrichment research using HOMER.\n\n\
     
 ${BOLD}OPTIONS${END}\n\
     ${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
         Define a suffix that input files must share to be considered. Allows to exclude unwanted peak files.\n\
-        Default = _peaks\n\n\
+        Default = '_peaks'\n\n\
     ${BOLD}-R${END} ${UDL}size${END}, ${BOLD}R${END}egionSize\n\
-        Define \n\
+        Define considered region size.\n\
         Default = 200 \n\n\
     ${BOLD}-L${END} ${UDL}length${END}, ${BOLD}Length${END}OfMotifs\n\
         Define lengths of motifs to look for during motif enrichment analysis.\n\
@@ -47,14 +48,14 @@ ${BOLD}ARGUMENTS${END}\n\
         Directory containing .bam files to process.\n\
         It usually corresponds to 'Mapped/<model>/BAM'.\n\n\
     ${BOLD}<fasta_file>${END}\n\
-        Path to FASTA genome reference file.\n
+        Path to genome reference FASTA file.\n
         It can usually be downloaded from Ensembl genome browser.\n\n\
     ${BOLD}<gtf_file>${END}\n\
         Path to GTF file containing annotation that correspond to provided FASTA file.\n
         It can usually be downloaded from Ensembl genome browser.\n\n\
 
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh 8_Annotate.sh ${BOLD}-N${END} _peaks ${BOLD}-R${END} 200 ${BOLD}-L${END} '8,10,12' ${BOLD}-A${END} true ${BOLD}-M${END} true ${BOLD}HOMER/Peaks /LAB-DATA/BiRD/users/jleger/Ref/Genome/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa /LAB-DATA/BiRD/users/jleger/Ref/Genome/Mus_musculus.GRCm39.108.gtf${END}\n"
+    sh ${script_name} ${BOLD}-N${END} _peaks ${BOLD}-R${END} 200 ${BOLD}-L${END} '8,10,12' ${BOLD}-A${END} true ${BOLD}-M${END} true ${BOLD}HOMER/Peaks /LAB-DATA/BiRD/users/jleger/Ref/Genome/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa /LAB-DATA/BiRD/users/jleger/Ref/Genome/Mus_musculus.GRCm39.108.gtf${END}\n"
 }
 
 ################################################################################################################
@@ -87,7 +88,7 @@ while getopts ":N:R:L:A:M:F:" option; do
         \?) # Error
             echo "Error : invalid option"
             echo "      Allowed options are [-N|-R|-L|-A|-M|-F]"
-            echo "      Enter sh MarkDuplicates.sh help for more details"
+            echo "      Enter 'sh ${script_name} help' for more details"
             exit;;
         esac
 done
@@ -124,8 +125,8 @@ if [ $# -eq 1 ] && [ $1 == "help" ]; then
     exit
 elif [ $# != 3 ]; then
     # Error if no input directory is provided
-    echo 'Error synthax : please use following synthax'
-    echo '      sh Annotate.sh [options] <input_dir> <fasta_file> <gtf_file>'
+    echo "Error synthax : please use following synthax"
+    echo "      sh ${script_name} [options] <input_dir> <fasta_file> <gtf_file>"
     exit
 fi
 
@@ -135,14 +136,6 @@ fi
 
 module load homer/4.11
 module load samtools/1.15.1
-
-#annotatePeaks.pl in.bed Mus_musculus.GRCm39.dna_sm.primary_assembly.fa -gtf Mus_musculus.GRCm39.108.gtf > out.txt
-#findMotifsGenome.pl in.bed Mus_musculus.GRCm39.dna_sm.primary_assembly.fa out -size 200 -len 10
-
-# For DNAse
-# sh 8_Annotate.sh -N _peaks -R 200 -L '8,10,12' -A true -M true HOMER/Peaks /SCRATCH-BIRD/users/jleger/Data/Ref/Genome/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa /SCRATCH-BIRD/users/jleger/Data/Ref/Genome/$
-# For ChIC
-# sh 8_Annotate.sh -N _peaks -R 1000 -L '8,10,12' -A true -M true HOMER/Peaks /SCRATCH-BIRD/users/jleger/Data/Ref/Genome/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa /SCRATCH-BIRD/users/jleger/Data/Ref/Genome$
 
 for current_tag in ${1}/*; do
     # Precise to eliminate empty lists for the loop
@@ -163,4 +156,3 @@ for current_tag in ${1}/*; do
         fi
     done
 done
-
