@@ -18,7 +18,7 @@ Help()
 {
 echo -e "${BOLD}####### WINPEAKS MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-        sh ${script_name} <input_dir> <fatsa_file> <gtf_file> <motif_file>\n\n\
+        sh ${script_name} [options] <input_dir> <fatsa_file> <gtf_file> <motif_file>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
         Perform peaks annotation while looking for a specific given motif.\n\
