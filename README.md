@@ -29,7 +29,14 @@ Trimming script includes the optional use of **Clumpify** (bbmap) to remove dupl
 
 # Initialization and recommandations
 ### Scripts
+All required scripts are available in the script folder in this directory.  
+To get more information about using these scripts, enter the command sh <script.sh> help.  
+  
 ### Environments
+The workflow is encoded in Shell language and is supposed to be launched under a Linux environment.
+Moreover, it was written to be used on a computing cluster with tools already pre-installed in the form of modules. Modules are so loaded using module load <tool_name> command.  
+All script files launch tasks as qsub task submission. To successfully complete the workflow, wait for all the jobs in a step to be completed before launching the next one.
+  
 ### Requirements
 ```
 Name                        Version
@@ -48,9 +55,10 @@ homer                       4.11
 ```
 
 ### Project directory
-
+To start the workflow, create a new directory for the project and put previously downloaded scripts inside. Create a 'Raw' subdirectory and put all the raw FASTQ files inside.  
+Raw FASTQ files must be compressed in '.fq.gz' or '.fastq.gz' format. If it is not the case, you need to compress them using gzip Raw/*.fastq.  
+  
 # Workflow Step by Step
-
 ### 1. Preparing the reference
 Syntax : ```sh Bowtie2_refindex.sh <FASTA> <build_name>```  
 ```bash
