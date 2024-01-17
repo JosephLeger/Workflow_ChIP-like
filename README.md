@@ -1,5 +1,7 @@
 # Workflow description
-This customized workflow is designed to perform the processing steps of epigenetic profiling, chromatin accesibility or ChIP data.  
+
+This workflow was designed to perform analyzes of epigenetic data, from FASTQ files to peak calling and motif enrichment analysis. It is applicable to chromatin accessibility, and ChIP-like data.  
+It is deliberately not automated, and requires launching the scripts manually one after the other, keeping full user control and allowing custom options, whilst retaining some standardization and repeatability. Therefore, it is well suited to projects with a not too high number of experiments, and for users who want to perform analyzes step by step by taking the time to understand the results of one step before launching the next, and possibly change the options accordingly.
 
 <img src="https://github.com/JosephLeger/Epigenetics/blob/main/img/pipeline.png"  width="60%" height="60%">
 
