@@ -19,7 +19,12 @@ Trimming script includes the optional use of **Clumpify** (bbmap) to remove dupl
 
 5. **Filtering and Indexing BAM :** If it hasn't already been done duplicated reads are removed, and reads with low alignment scores are filtered out using **Picard** and **SamTools**. Resulting BAM files are then indexed for following steps.  
 
-6. **Peak Calling :** To identify notable regions, aligned reads are then convert to peaks regions. This workflow provides two different widely used peak caller, **MACS2** and **HOMER**. Both will generate specific peak files, that are then converted into BED, BEDGRAPH and BIGWIG formats.  
+6. **Peak Calling :** To identify notable regions, aligned reads are then convert to peaks regions. This workflow provides two different widely used peak caller, **MACS2** and **HOMER**. Both will generate specific peak files, that are then converted into BED, BEDGRAPH and BIGWIG formats for following steps or visualization.  
+
+7. **Peak Annotation :** Previously called peaks are associated with the gene corresponding to their genomic region. In parallel, motif enrichment analysis can be launched, in order to identify known or *de novo* transcription factor specific motifs.  
+
+8. **Association Motif-Peaks :** This extra step can be launched to identify potential interactions between a factor and genomic regions. From peak calling results and a provided motif file, this step will generate a fully annotated peak table adding information to the peaks near which the motif appears in an additional column.  
+
 
 
 # Indexing the reference Genome
