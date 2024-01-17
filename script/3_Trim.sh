@@ -19,6 +19,7 @@ Help()
 echo -e "${BOLD}####### TRIM MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
     sh ${script_name} [options] <SE|PE> <input_dir>\n\n\
+    
 ${BOLD}DESCRIPTION${END}\n\
     Perform trimming of paired or unpaired FASTQ files using Trimmomatic and/or file optimization and duplicates removal using Clumpify.\n\
     It creates a new folder './Trimmed/Trimmomatic' in which trimmed FASTQ files are stored, and './Trimmed/Clumpify' in which optimized files are stored.\n\
