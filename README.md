@@ -3,8 +3,10 @@
 This workflow was designed to perform analyzes of chromatin accessibility or ChIP-like data, from FASTQ files to peak calling and motif enrichment analysis.  
   
 It is deliberately not automated, and requires launching the scripts manually one after the other, keeping full user control and allowing custom options, whilst retaining some standardization and repeatability. Therefore, it is well suited to projects with a not too high number of experiments, and for users who want to perform analyzes step by step by taking the time to understand the results of one step before launching the next, and possibly change the options accordingly.
-  
+
+<p align="center">
 <img src="https://github.com/JosephLeger/Epigenetics/blob/main/img/pipeline.png"  width="67%" height="67%">
+</p>
 
 ### Summary of Steps
 1. **Preparing the reference :** To perform mapping to reference genome, it must be indexed for **Bowtie2** usage first. To do so, it requires reference genome (FASTA file) available for download in Ensembl.org gateway.
