@@ -57,7 +57,7 @@ Syntax : ```sh Bowtie2_refindex.sh <FASTA> <build_name>```
 sh Bowtie2_refindex.sh ./Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz mm39
 ```
 
-###2. Quality Check
+### 2. Quality Check
 Syntax : ```sh 1_QC.sh <input_dir>```  
 ```bash
 sh 1_QC.sh Raw
