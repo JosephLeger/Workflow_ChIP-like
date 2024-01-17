@@ -62,7 +62,7 @@ Raw FASTQ files must be compressed in '.fq.gz' or '.fastq.gz' format. If it is n
 ### 1. Preparing the reference
 Syntax : ```sh Bowtie2_refindex.sh <FASTA> <build_name>```  
 ```bash
-sh Bowtie2_refindex.sh ./Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz mm39
+sh Bowtie2_refindex.sh ./Ref/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz mm39
 ```
 
 ### 2. Quality Check
