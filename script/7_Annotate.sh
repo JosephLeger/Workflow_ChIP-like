@@ -30,9 +30,12 @@ ${BOLD}OPTIONS${END}\n\
     ${BOLD}-R${END} ${UDL}size${END}, ${BOLD}R${END}egionSize\n\
         Define considered region size.\n\
         Default = 200 \n\n\
-    ${BOLD}-L${END} ${UDL}length${END}, ${BOLD}Length${END}OfMotifs\n\
+    ${BOLD}-L${END} ${UDL}length${END}, ${BOLD}L${END}engthOfMotifs\n\
         Define lengths of motifs to look for during motif enrichment analysis.\n\
         Default = 8,10,12\n\n\
+    ${BOLD}-S${END} ${UDL}number${END}, ${BOLD}S${END}erieLength\n\
+        Specifies the number of motifs of each length to find.\n\
+        Default = 40\n\n\
     ${BOLD}-A${END} ${UDL}boolean${END}, ${BOLD}A${END}nnotatePeaks\n\
         Specify whether peak annotation have to be run.\n\
         Default = true\n\n\
@@ -66,12 +69,14 @@ ${BOLD}EXAMPLE USAGE${END}\n\
 N_arg="_peaks"
 R_arg=200
 L_arg='8,10,12'
+S_arg=40
 A_arg=true
 M_arg=true
 F_arg='bed'
 
+
 # Change default values if another one is precised
-while getopts ":N:R:L:A:M:F:" option; do
+while getopts ":N:R:L:A:M:F:S:" option; do
     case $option in
         N) # SUFFIX TO DISCRIMINATE FILES FOR INPUT
             N_arg=${OPTARG};;
@@ -79,6 +84,8 @@ while getopts ":N:R:L:A:M:F:" option; do
             R_arg=${OPTARG};;
         L) # MOTIF LENGTH
             L_arg=${OPTARG};;
+        S) # FORMAT INPUT
+            S_arg=${OPTARG};;
         A) # ANNOTATE PEAKS
             A_arg=${OPTARG};;
         M) # SEARCH MOTIFS
@@ -87,7 +94,7 @@ while getopts ":N:R:L:A:M:F:" option; do
             F_arg=${OPTARG};;
         \?) # Error
             echo "Error : invalid option"
-            echo "      Allowed options are [-N|-R|-L|-A|-M|-F]"
+            echo "      Allowed options are [-N|-R|-L|-A|-M|-F|-S]"
             echo "      Enter 'sh ${script_name} help' for more details"
             exit;;
         esac
@@ -113,7 +120,7 @@ case $M_arg in
         exit;;
 esac
 
-# Deal with options [-N|-R|-L|-A|-M] and arguments [$1|$2|...]
+# Deal with options [-N|-R|-L|-A|-M|-F|-S] and arguments [$1|$2|...]
 shift $((OPTIND-1))
 
 ################################################################################################################
@@ -137,6 +144,10 @@ fi
 module load homer/4.11
 module load samtools/1.15.1
 
+# Generate REPORT
+echo '#' >> ./0K_REPORT.txt
+date >> ./0K_REPORT.txt
+
 for current_tag in ${1}/*; do
     # Precise to eliminate empty lists for the loop
     shopt -s nullglob
@@ -147,12 +158,16 @@ for current_tag in ${1}/*; do
             # Launch annotation as a qsub
             echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
             annotatePeaks.pl ${i} ${2} -gtf ${3} > ${current_tag}/${current_file}_annotated.txt" | qsub -N AnnotatePeaks_"${current_file}"
+            # Update REPORT
+            echo -e "AnnotatePeaks_"${current_file}" | annotatePeaks.pl ${i} ${2} -gtf ${3} > ${current_tag}/${current_file}_annotated.txt" >> ./0K_REPORT.txt 
         fi
 
         if [ ${M_arg} == 'true' ]; then
             # Launch motif finding as a qsub
             echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
-            findMotifsGenome.pl ${i} ${2} ${current_tag} -size ${R_arg} -len ${L_arg} -S 40" | qsub -N AnnotateMotifs_"${current_file}"
+            findMotifsGenome.pl ${i} ${2} ${current_tag} -size ${R_arg} -len ${L_arg} -S ${S_arg}" | qsub -N AnnotateMotifs_"${current_file}"
+            # Update REPORT
+            echo -e "AnnotateMotifs_"${current_file}" | findMotifsGenome.pl ${i} ${2} ${current_tag} -size ${R_arg} -len ${L_arg} -S ${S_arg}" >> ./0K_REPORT.txt 
         fi
     done
 done
