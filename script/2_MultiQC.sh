@@ -67,4 +67,5 @@ name=`echo $1 | sed -e 's@\/@_@g'`
 # Launch multiQC
 echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
 multiqc $1 -o ${newdir} -n ${name}_MultiQC" | qsub -N MultiQC_${name}
+# Update REPORT
 echo -e "MultiQC_${name} | multiqc $1 -o ${newdir} -n ${name}_MultiQC" >> ./0K_REPORT.txt
