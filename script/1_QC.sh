@@ -73,6 +73,11 @@ fi
 
 module load fastqc/0.11.9
 
+
+# Generate REPORT
+echo '#' >> ./0K_REPORT.txt
+date >> ./0K_REPORT.txt
+
 # For each input file given as argument
 for input in "$@"; do
         # Create directory in QC folder following the same path than input path provided
@@ -89,5 +94,7 @@ for input in "$@"; do
                 # Launch QC as a qsub
                 echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
                 fastqc -o QC/${input} --noextract -f fastq $i" | qsub -N QC_${name}_${current_file}
+                # Update REPORT
+                echo -e "QC_${name}_${current_file} | fastqc -o QC/${input} --noextract -f fastq $i" >> ./0K_REPORT.txt  
         done
 done
