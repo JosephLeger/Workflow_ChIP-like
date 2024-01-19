@@ -114,6 +114,10 @@ fi
 
 module load samtools/1.15.1
 
+# Generate REPORT
+echo '#' >> ./0K_REPORT.txt
+date >> ./0K_REPORT.txt
+
 # Establish conditions_list which contains already visited condition2 (celltype)
 conditions_list=""
 while IFS=',' read -r sra filename cond1 cond2; do
@@ -139,9 +143,14 @@ while IFS=',' read -r sra filename cond1 cond2; do
                 sra_files="${sra_files} ${newfile}"
             fi
         done < ${2}
-            
+        # Launch qsub    
         echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
         samtools merge -o ${1}/${M_arg}_${cond2}${newsuffix} ${sra_files} \n\
         samtools index ${1}/${M_arg}_${cond2}${newsuffix}" | qsub -N mergeBAM_${M_arg}_${cond2}
+        # Update REPORT
+        echo -e "mergeBAM_${M_arg}_${cond2} | fastqc -o QC/${input} --noextract -f fastq $i" >> ./0K_REPORT.txt
+        echo -e "        | samtools merge -o ${1}/${M_arg}_${cond2}${newsuffix} ${sra_files}" >> ./0K_REPORT.txt
+        echo -e "        | samtools index ${1}/${M_arg}_${cond2}${newsuffix}" >> ./0K_REPORT.txt
+        
     fi
 done < ${2}
