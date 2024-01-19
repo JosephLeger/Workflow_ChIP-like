@@ -125,6 +125,10 @@ fi
 module load samtools/1.15.1
 module load picard/2.23.5
 
+# Generate REPORT
+echo '#' >> ./0K_REPORT.txt
+date >> ./0K_REPORT.txt
+
 # For each input file given as argument
 for input in "$@"; do   
     # Precise to eliminate empty lists for the loop
@@ -151,11 +155,18 @@ for input in "$@"; do
             METRICS_FILE=${input}/_DupList_${current_file}.txt \
             REMOVE_DUPLICATES=true \n\
             samtools view -h ${bam_unique} | samtools view -b -Sq ${T_arg}  > ${bam_unique_filtered} \n\
-            samtools index ${bam_unique_filtered} ${bai_unique_filtered}" | qsub -N DupFilter_${model}_${current_file}
+            samtools index ${bam_unique_filtered} ${bai_unique_filtered}" | qsub -N BowtieCheck_${model}_${current_file}
+            # Update REPORT
+            echo -e "BowtieCheck_${model}_${current_file} | picard MarkDuplicates INPUT=${i} OUTPUT=${bam_unique} VALIDATION_STRINGENCY=LENIENT TMP_DIR=/tmp METRICS_FILE=${input}/_DupList_${current_file}.txt REMOVE_DUPLICATES=true" >> ./0K_REPORT.txt
+            echo -e "        | samtools view -h ${bam_unique} | samtools view -b -Sq ${T_arg}  > ${bam_unique_filtered}" >> ./0K_REPORT.txt  
+            echo -e "        | samtools index ${bam_unique_filtered} ${bai_unique_filtered}" >> ./0K_REPORT.txt  
         else 
             echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
             samtools view -h ${i} | samtools view -b -Sq ${T_arg}  > ${bam_filtered} \n\
-            samtools index ${bam_filtered} ${bai_filtered}" | qsub -N Filter_${model}_${current_file}
+            samtools index ${bam_filtered} ${bai_filtered}" | qsub -N BowtieCheck_${model}_${current_file}
+            # Update REPORT
+            echo -e "BowtieCheck_${model}_${current_file} | samtools view -h ${i} | samtools view -b -Sq ${T_arg}  > ${bam_filtered}" >> ./0K_REPORT.txt
+            echo -e "        | samtools index ${bam_filtered} ${bai_filtered}" >> ./0K_REPORT.txt 
         fi
     done
 done
