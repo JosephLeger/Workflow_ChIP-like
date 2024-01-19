@@ -55,6 +55,10 @@ fi
 
 module load multiqc/1.13
 
+# Generate REPORT
+echo '#' >> ./0K_REPORT.txt
+date >> ./0K_REPORT.txt
+
 # Create directory in QC folder for MultiQC
 newdir='./QC/MultiQC'
 mkdir -p ${newdir}
@@ -63,3 +67,4 @@ name=`echo $1 | sed -e 's@\/@_@g'`
 # Launch multiQC
 echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
 multiqc $1 -o ${newdir} -n ${name}_MultiQC" | qsub -N MultiQC_${name}
+echo -e "MultiQC_${name} | multiqc $1 -o ${newdir} -n ${name}_MultiQC" >> ./0K_REPORT.txt
