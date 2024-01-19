@@ -100,6 +100,10 @@ fi
 
 module load homer/4.11
 
+# Generate REPORT
+echo '#' >> ./0K_REPORT.txt
+date >> ./0K_REPORT.txt
+
 motif=`echo ${4} | sed -e 's@\.motif@@g' | sed -e 's@.*\/@@g'` 
 
 for current_tag in ${1}/*; do
@@ -111,5 +115,7 @@ for current_tag in ${1}/*; do
         # Launch annotation as a qsub
         echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
         annotatePeaks.pl ${i} $2 -gtf $3 -m $4 > ${current_tag}/${current_file}_${motif}_location.txt" | qsub -N WinPeaks_"${current_file}"_"${motif}"
+        # Update REPORT
+        echo -e "WinPeaks_"${current_file}"_"${motif}" | annotatePeaks.pl ${i} $2 -gtf $3 -m $4 > ${current_tag}/${current_file}_${motif}_location.txt" >> ./0K_REPORT.txt 
     done
 done
