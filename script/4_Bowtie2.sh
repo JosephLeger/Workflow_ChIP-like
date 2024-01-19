@@ -81,7 +81,7 @@ done
 # Checking if provided option values are correct
 case $U_arg in
     TRUE|True|true|T|t) 
-        U_arg='--no-unal';;
+        U_arg='--no-unal'' ';;
     FALSE|False|false|F|f) 
         U_arg='';;
     *) 
@@ -140,6 +140,10 @@ module load bowtie2/2.5.1
 module load samtools/1.15.1
 module load picard/2.23.5
 
+# Generate REPORT
+echo '#' >> ./0K_REPORT.txt
+date >> ./0K_REPORT.txt
+
 # Create output directories
 model=`echo $3 | sed -r 's/^.*\/(.*)$/\1/'`
 mkdir -p ./Mapped/${model}/SAM
@@ -165,6 +169,9 @@ if [ $1 == "SE" ]; then
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=tmp \
         SORT_ORDER=coordinate" | qsub -N Bowtie2_${1}_${model}_${current_file}
+        # Update REPORT
+        echo -e "Bowtie2_${1}_${model}_${current_file} | bowtie2 -p 2 -N ${N_arg} ${L_arg} ${U_arg}-x $3 -U $i -S Mapped/${model}/SAM/${current_file}.sam" >> ./0K_REPORT.txt
+        echo -e "        | picard SortSam INPUT=Mapped/${model}/SAM/${current_file}.sam OUTPUT=Mapped/${model}/BAM/${current_file}_sorted.bam VALIDATION_STRINGENCY=LENIENT TMP_DIR=tmp SORT_ORDER=coordinate" >> ./0K_REPORT.txt
     done
 
 elif [ $1 == "PE" ]; then
@@ -190,6 +197,9 @@ elif [ $1 == "PE" ]; then
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=tmp \
         SORT_ORDER=coordinate" | qsub -N Bowtie2_${1}_${model}_${current_pair}
+        # Update REPORT
+        echo -e "Bowtie2_${1}_${model}_${current_pair} | bowtie2 -p 2 -q -N ${N_arg} ${L_arg} ${U_arg} -x $3  -1 ${R1} -2 ${R2} -S Mapped/${model}/SAM/${current_pair}.sam" >> ./0K_REPORT.txt    
+        echo -e "        | picard SortSam INPUT=Mapped/${model}/SAM/${current_pair}.sam OUTPUT=Mapped/${model}/BAM/${current_pair}_sorted.bam VALIDATION_STRINGENCY=LENIENT TMP_DIR=tmp SORT_ORDER=coordinate" >> ./0K_REPORT.txt    
     done
 
 fi
