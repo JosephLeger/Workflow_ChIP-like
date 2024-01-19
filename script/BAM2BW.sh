@@ -147,6 +147,10 @@ fi
 
 module load deeptools/3.5.0
 
+# Generate REPORT
+echo '#' >> ./0K_REPORT.txt
+date >> ./0K_REPORT.txt
+
 for input in "$@"; do
     # Create output directory
     model=`echo ${input} | sed -e 's@.*Mapped\/@@g' | sed -e 's@\/.*@@g'`
@@ -168,5 +172,7 @@ for input in "$@"; do
         --outFileFormat $F_arg \
         -b $i \
         -o ${newdir}'/'${current_file}${NormName}'.'${file_ext}" | qsub -N Bam2${F_arg}_${current_file}
+        # Update REPORT
+        echo -e "Bam2${F_arg}_${current_file} | bamCoverage --normalizeUsing $M_arg --outFileFormat $F_arg -b $i -o ${newdir}'/'${current_file}${NormName}'.'${file_ext}" >> ./0K_REPORT.txt
     done
 done
