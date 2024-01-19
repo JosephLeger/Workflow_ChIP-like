@@ -216,6 +216,10 @@ module load samtools/1.15.1
 module load bedtools/2.30.0
 module load ucsc-bedgraphtobigwig/377
 
+# Generate REPORT
+echo '#' >> ./0K_REPORT.txt
+date >> ./0K_REPORT.txt
+
 if [ ${U_arg} == 'HOMER' ]; then
     module load homer/4.11
     # Create Tags output directories
@@ -248,8 +252,14 @@ if [ ${U_arg} == 'HOMER' ]; then
             grep -v '^#' ${peaks_txt} | awk -v OFS='\t' '{print \$2,\$3,\$4,\$1,\$8,\$5}' | bedtools sort > ${peaks_bed} \n\
             genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph} \n\
             bedGraphToBigWig ${bedgraph} ${1} ${bigwig}" | qsub -N HOMER_${current_tag}
-            done
+            # Update REPORT
+            echo -e "HOMER_${current_tag} | makeTagDirectory ${tag_dir} $i -fragLength ${S_arg} -single" >> ./0K_REPORT.txt
+            echo -e "        | findPeaks ${tag_dir} -style ${M_arg} -o ${peaks_txt} -L ${L_arg} -C ${C_arg} -tagThreshold ${T_arg} ${I_arg}${F_arg}" >> ./0K_REPORT.txt   
+            echo -e "        | grep -v '^#' ${peaks_txt} | awk -v OFS='\t' '{print \$2,\$3,\$4,\$1,\$8,\$5}' | bedtools sort > ${peaks_bed}" >> ./0K_REPORT.txt  
+            echo -e "        | genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph}" >> ./0K_REPORT.txt  
+            echo -e "        | bedGraphToBigWig ${bedgraph} ${1} ${bigwig}" >> ./0K_REPORT.txt  
         done
+    done
 elif [ ${U_arg} == 'MACS2' ]; then
     module load gcc
     module load macs2
@@ -281,6 +291,11 @@ elif [ ${U_arg} == 'MACS2' ]; then
             grep -v '^#' ${narrow_peak} | awk -v OFS='\t' '{print \$1,\$2,\$3,\$4,\$5,\$6}' | bedtools sort > ${peaks_bed} \n\
             genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph} \n\
             bedGraphToBigWig ${bedgraph} ${1} ${bigwig}" | qsub -N MACS2_${current_tag}
+            # Update REPORT
+            echo -e "MACS2_${current_tag} | macs2 callpeak -t ${file} -f BAM -g ${G_arg} --nomodel --shift ${H_arg} --extsize ${E_arg} -n ${current_tag} --outdir ${newdir}" >> ./0K_REPORT.txt
+            echo -e "        | grep -v '^#' ${narrow_peak} | awk -v OFS='\t' '{print \$1,\$2,\$3,\$4,\$5,\$6}' | bedtools sort > ${peaks_bed}" >> ./0K_REPORT.txt  
+            echo -e "        | genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph}" >> ./0K_REPORT.txt  
+            echo -e "        | bedGraphToBigWig ${bedgraph} ${1} ${bigwig}" >> ./0K_REPORT.txt  
         done
     done
 fi
