@@ -155,14 +155,6 @@ while getopts ":N:U:S:M:I:F:L:C:T:G:H:E:" option; do
 done
 
 # Checking if provided option values are correct
-case $I_arg in
-    None|none|FALSE|False|false|F) 
-        I_arg=''
-        F_arg='';;
-    *) 
-        I_arg='-i '$I_arg
-        F_arg='-F '$F_arg' ';;
-esac
 case $U_arg in
     HOMER|homer|Homer) 
         U_arg='HOMER';;
@@ -172,6 +164,19 @@ case $U_arg in
         echo "Error value : -U argument must be 'HOMER' or 'MACS2'"
         exit;;
 esac
+case $I_arg in
+    None|none|FALSE|False|false|F) 
+        I_arg=''
+        F_arg='';;
+    *) 
+        if [ ${U_arg} == 'HOMER' ]; then
+            I_arg='-i '$I_arg
+            F_arg='-F '$F_arg' '
+        elif [ ${U_arg} == 'MACS2' ]; then
+            I_arg='-c '$I_arg' '
+        fi;;
+esac
+
 
 # Deal with options [-N|-U|-S|-M|-I|-F|-L|-C|-T] and arguments [$1|$2|...]
 shift $((OPTIND-1))
@@ -264,6 +269,8 @@ elif [ ${U_arg} == 'MACS2' ]; then
     module load gcc
     module load macs2
 
+    ${I_arg}='-c '${I_arg}' '
+
     for input in "${@:1}"; do
         for file in ${input}/*${N_arg}*.bam; do    
             # Define current tag
@@ -281,8 +288,8 @@ elif [ ${U_arg} == 'MACS2' ]; then
             # Launch MACS2
             echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
             macs2 callpeak \
-            -t ${file} \
-            -f BAM -g ${G_arg} 
+            -t ${file} ${I_arg}\
+            -f BAM -g ${G_arg} \
             --nomodel \
             --shift ${H_arg} \
             --extsize ${E_arg} \
