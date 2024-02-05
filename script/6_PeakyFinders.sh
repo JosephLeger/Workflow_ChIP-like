@@ -270,6 +270,8 @@ elif [ ${U_arg} == 'MACS2' ]; then
     module load macs2
 
     for input in "${@:1}"; do
+        # Precise to eliminate empty lists for the loop
+        shopt -s nullglob
         for file in ${input}/*${N_arg}*.bam; do    
             # Define current tag
             current_tag=`echo ${file} | sed -e "s@${input}/@@g" | sed -e "s@${N_arg}@@g" | sed -e 's@\.bam@@g'`
