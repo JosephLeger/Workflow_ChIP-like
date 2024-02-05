@@ -269,7 +269,7 @@ elif [ ${U_arg} == 'MACS2' ]; then
     module load gcc
     module load macs2
 
-    for input in "${@:1}"; do
+    for input in "${@:2}"; do
         # Precise to eliminate empty lists for the loop
         shopt -s nullglob
         for file in ${input}/*${N_arg}*.bam; do    
