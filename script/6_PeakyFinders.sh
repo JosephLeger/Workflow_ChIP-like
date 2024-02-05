@@ -269,8 +269,6 @@ elif [ ${U_arg} == 'MACS2' ]; then
     module load gcc
     module load macs2
 
-    ${I_arg}='-c '${I_arg}' '
-
     for input in "${@:1}"; do
         for file in ${input}/*${N_arg}*.bam; do    
             # Define current tag
