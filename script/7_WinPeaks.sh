@@ -3,7 +3,7 @@
 ################################################################################################################
 ### HELP -------------------------------------------------------------------------------------------------------
 ################################################################################################################
-script_name='9_WinPeaks.sh'
+script_name='7_WinPeaks.sh'
 
 # Get user id for custom manual pathways
 usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
@@ -104,6 +104,15 @@ module load homer/4.11
 echo '#' >> ./0K_REPORT.txt
 date >> ./0K_REPORT.txt
 
+Launch()
+{
+# Launch COMMAND and save report
+echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n"${COMMAND} | qsub -N ${JOBNAME} ${WAIT}
+echo -e ${JOBNAME} >> ./0K_REPORT.txt
+echo -e ${COMMAND} | sed 's@^@   \| @' >> ./0K_REPORT.txt
+}
+WAIT=''
+
 motif=`echo ${4} | sed -e 's@\.motif@@g' | sed -e 's@.*\/@@g'` 
 
 for current_tag in ${1}/*; do
@@ -112,10 +121,10 @@ for current_tag in ${1}/*; do
     for i in "${current_tag}"/*${N_arg}*.${F_arg}; do
         # Set variables for jobname
         current_file=`echo "${i}" | sed -e "s@.*\/@@g" | sed -e "s@\.${F_arg}@@g"`
-        # Launch annotation as a qsub
-        echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
-        annotatePeaks.pl ${i} $2 -gtf $3 -m $4 > ${current_tag}/${current_file}_${motif}_location.txt" | qsub -N WinPeaks_"${current_file}"_"${motif}"
-        # Update REPORT
-        echo -e "WinPeaks_"${current_file}"_"${motif}" | annotatePeaks.pl ${i} $2 -gtf $3 -m $4 > ${current_tag}/${current_file}_${motif}_location.txt" >> ./0K_REPORT.txt 
+        
+        ## Define JOB and COMMAND and launch job
+        JOBNAME="WinPeaks_${current_file}_${motif}"
+        COMMAND="annotatePeaks.pl ${i} $2 -gtf $3 -m $4 > ${current_tag}/${current_file}_${motif}_location.txt"
+        Launch 
     done
 done
