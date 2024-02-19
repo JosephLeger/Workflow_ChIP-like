@@ -62,64 +62,58 @@ To start the workflow, create a new directory for the project and put previously
 Raw FASTQ files must be compressed in '.fq.gz' or '.fastq.gz' format. If it is not the case, you need to compress them using gzip Raw/*.fastq.  
   
 # Workflow Step by Step
-### 1. Preparing the reference
+### 0. Preparing the reference
 Syntax : ```sh Bowtie2_refindex.sh <FASTA> <build_name>```  
 ```bash
 sh Bowtie2_refindex.sh ./Ref/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz mm39
 ```
 
-### 2. Quality Check
+### 1. Quality Check
 Syntax : ```sh 1_QC.sh <input_dir>```  
 ```bash
 sh 1_QC.sh Raw
 ```
 
-Syntax : ```sh 2_MultiQC.sh <input_dir>```  
+### 2. Trimming
+Syntax : ```sh 2_Trim.sh [options] <SE|PE> <input_dir>```  
 ```bash
-sh 2_MultiQC.sh QC/Raw
+sh 2_Trim.sh -U 'Both' -S 4:15 -L 5 -T 5 -M 36 -I ./Ref/TruSeq3-SE_NexteraPE-PE.fa:2:30:7 SE Raw
 ```
 
-### 3. Trimming
-Syntax : ```sh 3_Trim.sh [options] <SE|PE> <input_dir>```  
+### 3. Alignment to genome
+Syntax : ```sh 3_Bowtie2.sh [options] <SE|PE> <input_dir> <refindex>```   
 ```bash
-sh 3_Trim.sh -U 'Both' -S 4:15 -L 5 -T 5 -M 36 -I ./Ref/TruSeq3-SE_NexteraPE-PE.fa:2:30:7 SE Raw
+sh 3_Bowtie2.sh SE Trimmed/Trimmomatic ./Ref/refdata-Bowtie2-mm39/mm39
 ```
 
-
-### 4. Alignment to genome
-Syntax : ```sh 4_Bowtie2.sh [options] <SE|PE> <input_dir> <refindex>```   
-```bash
-sh 4_Bowtie2.sh SE Trimmed/Trimmomatic ./Ref/refdata-Bowtie2-mm39/mm39
-```
-
-### 5. Filtering and indexing BAM
-Syntax : ```sh 5_BowtieCheck.sh [options] <input_dir1> <...>```  
+### 4. Filtering and indexing BAM
+Syntax : ```sh 4_BowtieCheck.sh [options] <input_dir1> <...>```  
 ```bash
 # -R false because duplicated were remove by Clumpify
-sh 5_BowtieCheck.sh -N '_sorted' -T 10 -R false Mapped/mm39/BAM 
+sh 4_BowtieCheck.sh -N '_sorted' -T 10 -R false Mapped/mm39/BAM 
 ```
 
-### 6. Peak Calling
-Syntax : ```sh 6_PeakyFinders.sh [options] <chrom_size> <input_dir1> <...>```  
+### 5. Peak Calling
+Syntax : ```sh 5_PeakyFinders.sh [options] <chrom_size> <input_dir1> <...>```  
 ```bash
 # Using MACS2
-sh 7_PeakyFinders.sh -U 'MACS2' -N '_filtered' Mapped/mm39/BAM
+sh 5_PeakyFinders.sh -U 'MACS2' -N '_filtered' Mapped/mm39/BAM
 
 # using HOMER
-sh 7_PeakyFinders -U 'HOMER'-N '_filtered' -S 50 -M dnase -L 4 -C 2 ./Ref/mm39.chrom.sizes Mapped/mm39/BAM
+sh 5_PeakyFinders -U 'HOMER'-N '_filtered' -S 50 -M dnase -L 4 -C 2 ./Ref/mm39.chrom.sizes Mapped/mm39/BAM
 ```
 *Note : adapt -M option according to the type of data. Use **dna** for chromatin accessibility, **histone** for epigenetic marks and **factor** for CUT&RUN.*  
 
-### 7. Peak Annotation
-Syntax : ```sh 7_Annotate.sh [options] <input_dir> <FASTA> <GTF>```  
+### 6. Peak Annotation
+Syntax : ```sh 6_Annotate.sh [options] <input_dir> <FASTA> <GTF>```  
 ```bash
-sh 8_Annotate.sh -R 200 -L '8,10,12' -A true -M true ./Peaks ./Ref/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa ./Ref/Mus_musculus.GRCm39.108.gtf
+sh 6_Annotate.sh -R 200 -L '8,10,12' -A true -M true ./Peaks ./Ref/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa ./Ref/Mus_musculus.GRCm39.108.gtf
 ```
 
-### 8. Association Motif-Peaks
-Syntax : ```sh 8_WinPeaks.sh [options] <input_dir> <FASTA> <GTF> <MOTIF>```  
+### 7. Association Motif-Peaks
+Syntax : ```sh 7_WinPeaks.sh [options] <input_dir> <FASTA> <GTF> <MOTIF>```  
 ```bash
-sh 9_WinPeaks.sh -F bed./Peaks ./Ref/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa ./Ref/Mus_musculus.GRCm39.108.gtf ./Motifs/FACTOR.motif
+sh 7_WinPeaks.sh -F bed./Peaks ./Ref/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa ./Ref/Mus_musculus.GRCm39.108.gtf ./Motifs/FACTOR.motif
 ```
 
 
