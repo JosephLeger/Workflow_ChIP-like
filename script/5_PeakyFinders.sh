@@ -3,7 +3,7 @@
 ################################################################################################################
 ### HELP -------------------------------------------------------------------------------------------------------
 ################################################################################################################
-script_name='6_PeakyFinders.sh'
+script_name='5_PeakyFinders.sh'
 
 # Get user id for custom manual pathways
 usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
@@ -155,6 +155,14 @@ while getopts ":N:U:S:M:I:F:L:C:T:G:H:E:" option; do
 done
 
 # Checking if provided option values are correct
+case $I_arg in
+    None|none|FALSE|False|false|F) 
+        I_arg=''
+        F_arg='';;
+    *) 
+        I_arg='-i '$I_arg
+        F_arg='-F '$F_arg' ';;
+esac
 case $U_arg in
     HOMER|homer|Homer) 
         U_arg='HOMER';;
@@ -164,19 +172,6 @@ case $U_arg in
         echo "Error value : -U argument must be 'HOMER' or 'MACS2'"
         exit;;
 esac
-case $I_arg in
-    None|none|FALSE|False|false|F) 
-        I_arg=''
-        F_arg='';;
-    *) 
-        if [ ${U_arg} == 'HOMER' ]; then
-            I_arg='-i '$I_arg
-            F_arg='-F '$F_arg' '
-        elif [ ${U_arg} == 'MACS2' ]; then
-            I_arg='-c '$I_arg' '
-        fi;;
-esac
-
 
 # Deal with options [-N|-U|-S|-M|-I|-F|-L|-C|-T] and arguments [$1|$2|...]
 shift $((OPTIND-1))
@@ -225,9 +220,18 @@ module load ucsc-bedgraphtobigwig/377
 echo '#' >> ./0K_REPORT.txt
 date >> ./0K_REPORT.txt
 
+Launch()
+{
+# Launch COMMAND and save report
+echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n"${COMMAND} | qsub -N ${JOBNAME} ${WAIT}
+echo -e ${JOBNAME} >> ./0K_REPORT.txt
+echo -e ${COMMAND} | sed -r 's@\|@\n@g' | sed 's@^@   \| @' >> ./0K_REPORT.txt
+}
+WAIT=''
+
 if [ ${U_arg} == 'HOMER' ]; then
     module load homer/4.11
-    # Create Tags output directories
+    # Create Tags output directories*
     mkdir -p HOMER/Tags
     for input in "${@:2}"; do
         # Precise to eliminate empty lists for the loop
@@ -237,72 +241,54 @@ if [ ${U_arg} == 'HOMER' ]; then
             # Genrate tag_name by removing pathway, suffix and .bam of read files
             current_tag=`echo $i | sed -e "s@$input\/@@g" | sed -e "s@${N_arg}@@g" | sed -e 's@\.bam@@g'`
             # Create Peaks output directories
-            mkdir -p HOMER/Peaks/${current_tag}
+            outdir=HOMER/Peaks/${current_tag}
+            mkdir -p ${outdir}
 
             # Set variables for the run :
-            tag_dir=HOMER/Tags/${current_tag}
-            peaks_txt=HOMER/Peaks/${current_tag}/${current_tag}_peaks.txt
-            peaks_bed=HOMER/Peaks/${current_tag}/${current_tag}_peaks_sorted.bed
-            bedgraph=HOMER/Peaks/${current_tag}/${current_tag}_peaks_sorted.bedgraph
-            bigwig=HOMER/Peaks/${current_tag}/${current_tag}_peaks_sorted.bw
+            peaks_txt=${outdir}/${current_tag}_peaks.txt
+            peaks_bed=${outdir}/${current_tag}_peaks_sorted.bed
+            bedgraph=${outdir}/${current_tag}_peaks_sorted.bedgraph
+            bigwig=${outdir}/${current_tag}_peaks_sorted.bw
 
-            # Launch HOMER
-            echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
-            makeTagDirectory ${tag_dir} $i -fragLength ${S_arg} -single \n\
-            findPeaks ${tag_dir} -style ${M_arg} \
-            -o ${peaks_txt} \
-            -L ${L_arg} \
-            -C ${C_arg} \
+            ## Define JOB and COMMAND and launch job
+            JOBNAME="HOMER_${current_tag}"
+            COMMAND="makeTagDirectory HOMER/Tags/${current_tag} $i -fragLength ${S_arg} -single \n\
+            findPeaks HOMER/Tags/${current_tag} -style ${M_arg} \
+            -o ${peaks_txt} -L ${L_arg} -C ${C_arg} \
             -tagThreshold ${T_arg} ${I_arg}${F_arg}\n\
             grep -v '^#' ${peaks_txt} | awk -v OFS='\t' '{print \$2,\$3,\$4,\$1,\$8,\$5}' | bedtools sort > ${peaks_bed} \n\
             genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph} \n\
-            bedGraphToBigWig ${bedgraph} ${1} ${bigwig}" | qsub -N HOMER_${current_tag}
-            # Update REPORT
-            echo -e "HOMER_${current_tag} | makeTagDirectory ${tag_dir} $i -fragLength ${S_arg} -single" >> ./0K_REPORT.txt
-            echo -e "        | findPeaks ${tag_dir} -style ${M_arg} -o ${peaks_txt} -L ${L_arg} -C ${C_arg} -tagThreshold ${T_arg} ${I_arg}${F_arg}" >> ./0K_REPORT.txt   
-            echo -e "        | grep -v '^#' ${peaks_txt} | awk -v OFS='\t' '{print \$2,\$3,\$4,\$1,\$8,\$5}' | bedtools sort > ${peaks_bed}" >> ./0K_REPORT.txt  
-            echo -e "        | genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph}" >> ./0K_REPORT.txt  
-            echo -e "        | bedGraphToBigWig ${bedgraph} ${1} ${bigwig}" >> ./0K_REPORT.txt  
+            bedGraphToBigWig ${bedgraph} ${1} ${bigwig}"
+            Launch
         done
     done
 elif [ ${U_arg} == 'MACS2' ]; then
     module load gcc
     module load macs2
 
-    for input in "${@:2}"; do
-        # Precise to eliminate empty lists for the loop
-        shopt -s nullglob
+    for input in "${@:1}"; do
         for file in ${input}/*${N_arg}*.bam; do    
             # Define current tag
             current_tag=`echo ${file} | sed -e "s@${input}/@@g" | sed -e "s@${N_arg}@@g" | sed -e 's@\.bam@@g'`
             # Create output dir
-            newdir=MACS2/Peaks/${current_tag}
-            mkdir -p ${newdir}
+            outdir=MACS2/Peaks/${current_tag}
+            mkdir -p ${outdir}
 
             # Set variables for the run :
-            narrrow_peak=MACS2/Peaks/${current_tag}/${current_tag}_peaks.narrowPeak
-            peaks_bed=MACS2/Peaks/${current_tag}/${current_tag}_peaks_sorted.bed
-            bedgraph=MACS2/Peaks/${current_tag}/${current_tag}_peaks_sorted.bedgraph
-            bigwig=MACS2/Peaks/${current_tag}/${current_tag}_peaks_sorted.bw
+            narrrow_peak=${outdir}/${current_tag}_peaks.narrowPeak
+            peaks_bed=${outdir}/${current_tag}_peaks_sorted.bed
+            bedgraph=${outdir}/${current_tag}_peaks_sorted.bedgraph
+            bigwig=${outdir}/${current_tag}_peaks_sorted.bw
             
-            # Launch MACS2
-            echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
-            macs2 callpeak \
-            -t ${file} ${I_arg}\
-            -f BAM -g ${G_arg} \
-            --nomodel \
-            --shift ${H_arg} \
-            --extsize ${E_arg} \
-            -n ${current_tag} \
-            --outdir ${newdir}\n\
+            ## Define JOB and COMMAND and launch job
+            JOBNAME="MACS2_${current_tag}"
+            COMMAND="macs2 callpeak -t ${file} -f BAM -g ${G_arg} 
+            --nomodel --shift ${H_arg} --extsize ${E_arg} \
+            -n ${current_tag} --outdir ${newdir}\n\
             grep -v '^#' ${narrow_peak} | awk -v OFS='\t' '{print \$1,\$2,\$3,\$4,\$5,\$6}' | bedtools sort > ${peaks_bed} \n\
             genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph} \n\
-            bedGraphToBigWig ${bedgraph} ${1} ${bigwig}" | qsub -N MACS2_${current_tag}
-            # Update REPORT
-            echo -e "MACS2_${current_tag} | macs2 callpeak -t ${file} -f BAM -g ${G_arg} --nomodel --shift ${H_arg} --extsize ${E_arg} -n ${current_tag} --outdir ${newdir}" >> ./0K_REPORT.txt
-            echo -e "        | grep -v '^#' ${narrow_peak} | awk -v OFS='\t' '{print \$1,\$2,\$3,\$4,\$5,\$6}' | bedtools sort > ${peaks_bed}" >> ./0K_REPORT.txt  
-            echo -e "        | genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph}" >> ./0K_REPORT.txt  
-            echo -e "        | bedGraphToBigWig ${bedgraph} ${1} ${bigwig}" >> ./0K_REPORT.txt  
+            bedGraphToBigWig ${bedgraph} ${1} ${bigwig}"
+            Launch
         done
     done
 fi
