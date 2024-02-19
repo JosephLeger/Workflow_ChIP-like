@@ -3,7 +3,7 @@
 ################################################################################################################
 ### HELP -------------------------------------------------------------------------------------------------------
 ################################################################################################################
-script_name='5_BowtieCheck.sh'
+script_name='4_BowtieCheck.sh'
 
 # Get user id for custom manual pathways
 usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
@@ -33,7 +33,7 @@ ${BOLD}OPTIONS${END}\n\
         Default = 10\n\n\
     ${BOLD}-R${END} ${UDL}boolean${END}, ${BOLD}R${END}emoveDuplicates\n\
         Whether remove duplicated or not.\n\
-        Default = true\n\n\
+        Default = false\n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
     ${BOLD}<input_dir>${END}\n\
@@ -54,7 +54,7 @@ ${BOLD}EXAMPLE USAGE${END}\n\
 # Set default values
 N_arg='_sorted'
 T_arg=10
-R_arg='true'
+R_arg='false'
 
 # Change default values if another one is precised
 while getopts ":T:N:R:" option; do
@@ -129,44 +129,41 @@ module load picard/2.23.5
 echo '#' >> ./0K_REPORT.txt
 date >> ./0K_REPORT.txt
 
+Launch()
+{
+# Launch COMMAND and save report
+echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n"${COMMAND} | qsub -N ${JOBNAME} ${WAIT}
+echo -e ${JOBNAME} >> ./0K_REPORT.txt
+echo -e ${COMMAND} | sed -r 's@\|@\n@g' | sed 's@^@   \| @' >> ./0K_REPORT.txt
+}
+WAIT=''
+
 # For each input file given as argument
 for input in "$@"; do   
     # Precise to eliminate empty lists for the loop
     shopt -s nullglob
     for i in ${input}/*${N_arg}*.bam; do
-
         # Set variables for the run :
         model=`echo ${input} | sed -e 's@.*Mapped\/@@g' | sed -e 's@\/.*@@g'`
         current_file=`echo $i | sed -e "s@${input}\/@@" | sed -e 's@\.bam@@g'`
-        bam_unique=${input}/${current_file}_unique.bam
-        bam_unique_filtered=${input}/${current_file}_unique_filtered.bam
-        bam_filtered=${input}/${current_file}_filtered.bam
-        bai_unique_filtered=${input}/${current_file}_unique_filtered.bai
-        bai_filtered=${input}/${current_file}_filtered.bai
 
-        # Launch scripts as qsub
+        ## Define JOB and COMMAND and launch job
         if [ ${R_arg} == 'true' ]; then
-            echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
-            picard MarkDuplicates \
-            INPUT=${i} \
-            OUTPUT=${bam_unique} \
+            JOBNAME="BowtieCheck_${model}_${current_file}"
+            COMMAND="picard MarkDuplicates INPUT=${i} \
+            OUTPUT=${input}/${current_file}_unique.bam \
             VALIDATION_STRINGENCY=LENIENT \
             TMP_DIR=/tmp \
             METRICS_FILE=${input}/_DupList_${current_file}.txt \
             REMOVE_DUPLICATES=true \n\
-            samtools view -h ${bam_unique} | samtools view -b -Sq ${T_arg}  > ${bam_unique_filtered} \n\
-            samtools index ${bam_unique_filtered} ${bai_unique_filtered}" | qsub -N BowtieCheck_${model}_${current_file}
-            # Update REPORT
-            echo -e "BowtieCheck_${model}_${current_file} | picard MarkDuplicates INPUT=${i} OUTPUT=${bam_unique} VALIDATION_STRINGENCY=LENIENT TMP_DIR=/tmp METRICS_FILE=${input}/_DupList_${current_file}.txt REMOVE_DUPLICATES=true" >> ./0K_REPORT.txt
-            echo -e "        | samtools view -h ${bam_unique} | samtools view -b -Sq ${T_arg}  > ${bam_unique_filtered}" >> ./0K_REPORT.txt  
-            echo -e "        | samtools index ${bam_unique_filtered} ${bai_unique_filtered}" >> ./0K_REPORT.txt  
+            samtools view -h ${input}/${current_file}_unique.bam | samtools view -b -Sq ${T_arg} > ${input}/${current_file}_unique_filtered.bam \n\
+            samtools index ${input}/${current_file}_unique_filtered.bam ${input}/${current_file}_unique_filtered.bai"
+            Launch 
         else 
-            echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
-            samtools view -h ${i} | samtools view -b -Sq ${T_arg}  > ${bam_filtered} \n\
-            samtools index ${bam_filtered} ${bai_filtered}" | qsub -N BowtieCheck_${model}_${current_file}
-            # Update REPORT
-            echo -e "BowtieCheck_${model}_${current_file} | samtools view -h ${i} | samtools view -b -Sq ${T_arg}  > ${bam_filtered}" >> ./0K_REPORT.txt
-            echo -e "        | samtools index ${bam_filtered} ${bai_filtered}" >> ./0K_REPORT.txt 
+            JOBNAME="BowtieCheck_${model}_${current_file}"
+            COMMAND="samtools view -h ${i} | samtools view -b -Sq ${T_arg} > ${input}/${current_file}_filtered.bam \n\
+            samtools index ${input}/${current_file}_filtered.bam ${input}/${current_file}_filtered.bai"
+            Launch
         fi
     done
 done
