@@ -3,7 +3,7 @@
 ################################################################################################################
 ### HELP -------------------------------------------------------------------------------------------------------
 ################################################################################################################
-script_name='4_Bowtie2.sh'
+script_name='3_Bowtie2.sh'
 
 # Get user id for custom manual pathways
 usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
@@ -49,7 +49,7 @@ ${BOLD}ARGUMENTS${END}\n\
         Provided path must be ended by reference name (prefix common to files).\n\n\
         
 ${BOLD}EXAMPLE USAGE${END}\n\
-    ${BOLD}sh ${script_name} PE Trimmed/Trimmomatic/Paired /LAB-DATA/BiRD/users/${usr}/Ref/refdata-Bowtie2-mm39/mm39${END}\n"
+    sh ${script_name} ${BOLD}PE Trimmed/Trimmomatic/Paired /LAB-DATA/BiRD/users/${usr}/Ref/refdata-Bowtie2-mm39/mm39${END}\n"
 }
 
 ################################################################################################################
@@ -144,6 +144,16 @@ module load picard/2.23.5
 echo '#' >> ./0K_REPORT.txt
 date >> ./0K_REPORT.txt
 
+Launch()
+{
+# Launch COMMAND and save report
+echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n"${COMMAND} | qsub -N ${JOBNAME} ${WAIT}
+echo -e ${JOBNAME} >> ./0K_REPORT.txt
+echo -e ${COMMAND} | sed -r 's@\|@\n@g' | sed 's@^@   \| @' >> ./0K_REPORT.txt
+}
+WAIT=''
+
+
 # Create output directories
 model=`echo $3 | sed -r 's/^.*\/(.*)$/\1/'`
 mkdir -p ./Mapped/${model}/SAM
@@ -156,22 +166,16 @@ if [ $1 == "SE" ]; then
     for i in $2/*.fq.gz $2/*.fastq.gz; do
         # Set variables for jobname
         current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
-
-        # Launch alignment to experiment model refseq as qsub
-        echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
-        bowtie2 -p 2 -N ${N_arg} ${L_arg} ${U_arg}\
-        -x $3 \
-        -U $i \
-        -S Mapped/${model}/SAM/${current_file}.sam \n\
-        picard SortSam \
-        INPUT=Mapped/${model}/SAM/${current_file}.sam \
+        
+        ## Define JOB and COMMAND and launch job
+        JOBNAME="Bowtie2_${1}_${model}_${current_file}"
+        COMMAND="bowtie2 -p 2 -N ${N_arg} ${L_arg} ${U_arg}\
+        -x $3 -U $i | picard SortSam INPUT=/dev/stdin \
         OUTPUT=Mapped/${model}/BAM/${current_file}_sorted.bam \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=tmp \
-        SORT_ORDER=coordinate" | qsub -N Bowtie2_${1}_${model}_${current_file}
-        # Update REPORT
-        echo -e "Bowtie2_${1}_${model}_${current_file} | bowtie2 -p 2 -N ${N_arg} ${L_arg} ${U_arg}-x $3 -U $i -S Mapped/${model}/SAM/${current_file}.sam" >> ./0K_REPORT.txt
-        echo -e "        | picard SortSam INPUT=Mapped/${model}/SAM/${current_file}.sam OUTPUT=Mapped/${model}/BAM/${current_file}_sorted.bam VALIDATION_STRINGENCY=LENIENT TMP_DIR=tmp SORT_ORDER=coordinate" >> ./0K_REPORT.txt
+        SORT_ORDER=coordinate"
+        Launch
     done
 
 elif [ $1 == "PE" ]; then
@@ -184,22 +188,16 @@ elif [ $1 == "PE" ]; then
         # Define paired files
         R1=$i
         R2=`echo $i | sed -e 's/_R1/_R2/g'`
-        # Launch alignment to experiment model refseq as qsub
-        echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
-        bowtie2 -p 2 -q -N ${N_arg} ${L_arg} ${U_arg} \
-        -x $3 \
-        -1 ${R1} \
-        -2 ${R2} \
-        -S Mapped/${model}/SAM/${current_pair}.sam
-        picard SortSam \
-        INPUT=Mapped/${model}/SAM/${current_pair}.sam \
+        
+        ## Define JOB and COMMAND and launch job
+        JOBNAME="Bowtie2_${1}_${model}_${current_pair}"
+        COMMAND="bowtie2 -p 2 -q -N ${N_arg} ${L_arg} ${U_arg} \
+        -x $3 -1 ${R1} -2 ${R2} | picard SortSam INPUT=/dev/stdin \
         OUTPUT=Mapped/${model}/BAM/${current_pair}_sorted.bam \
         VALIDATION_STRINGENCY=LENIENT \
         TMP_DIR=tmp \
-        SORT_ORDER=coordinate" | qsub -N Bowtie2_${1}_${model}_${current_pair}
-        # Update REPORT
-        echo -e "Bowtie2_${1}_${model}_${current_pair} | bowtie2 -p 2 -q -N ${N_arg} ${L_arg} ${U_arg} -x $3  -1 ${R1} -2 ${R2} -S Mapped/${model}/SAM/${current_pair}.sam" >> ./0K_REPORT.txt    
-        echo -e "        | picard SortSam INPUT=Mapped/${model}/SAM/${current_pair}.sam OUTPUT=Mapped/${model}/BAM/${current_pair}_sorted.bam VALIDATION_STRINGENCY=LENIENT TMP_DIR=tmp SORT_ORDER=coordinate" >> ./0K_REPORT.txt    
+        SORT_ORDER=coordinate"
+        Launch    
     done
 
 fi
