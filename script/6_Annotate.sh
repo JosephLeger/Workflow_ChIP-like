@@ -3,7 +3,7 @@
 ################################################################################################################
 ### HELP -------------------------------------------------------------------------------------------------------
 ################################################################################################################
-script_name='7_Annotate.sh'
+script_name='6_Annotate.sh'
 
 # Get user id for custom manual pathways
 usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
@@ -148,26 +148,32 @@ module load samtools/1.15.1
 echo '#' >> ./0K_REPORT.txt
 date >> ./0K_REPORT.txt
 
+Launch()
+{
+# Launch COMMAND and save report
+echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n"${COMMAND} | qsub -N ${JOBNAME} ${WAIT}
+echo -e ${JOBNAME} >> ./0K_REPORT.txt
+echo -e ${COMMAND} | sed 's@^@   \| @' >> ./0K_REPORT.txt
+}
+WAIT=''
+
 for current_tag in ${1}/*; do
     # Precise to eliminate empty lists for the loop
     shopt -s nullglob
     for i in "${current_tag}"/*${N_arg}*.${F_arg}; do
         # Set variables for jobname
         current_file=`echo "${i}" | sed -e "s@.*\/@@g" | sed -e "s@\.${F_arg}@@g"`
+        
         if [ ${A_arg} == 'true' ]; then
-            # Launch annotation as a qsub
-            echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
-            annotatePeaks.pl ${i} ${2} -gtf ${3} > ${current_tag}/${current_file}_annotated.txt" | qsub -N AnnotatePeaks_"${current_file}"
-            # Update REPORT
-            echo -e "AnnotatePeaks_"${current_file}" | annotatePeaks.pl ${i} ${2} -gtf ${3} > ${current_tag}/${current_file}_annotated.txt" >> ./0K_REPORT.txt 
+            JOBNAME="AnnotatePeaks_${current_file}"
+            COMMAND="annotatePeaks.pl ${i} ${2} -gtf ${3} > ${current_tag}/${current_file}_annotated.txt"
+            Launch
         fi
 
         if [ ${M_arg} == 'true' ]; then
-            # Launch motif finding as a qsub
-            echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
-            findMotifsGenome.pl ${i} ${2} ${current_tag} -size ${R_arg} -len ${L_arg} -S ${S_arg}" | qsub -N AnnotateMotifs_"${current_file}"
-            # Update REPORT
-            echo -e "AnnotateMotifs_"${current_file}" | findMotifsGenome.pl ${i} ${2} ${current_tag} -size ${R_arg} -len ${L_arg} -S ${S_arg}" >> ./0K_REPORT.txt 
+            JOBNAME="AnnotateMotifs_${current_file}"
+            COMMAND="findMotifsGenome.pl ${i} ${2} ${current_tag} -size ${R_arg} -len ${L_arg} -S ${S_arg}"
+            Launch
         fi
     done
 done
