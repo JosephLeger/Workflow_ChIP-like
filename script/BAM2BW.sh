@@ -151,11 +151,20 @@ module load deeptools/3.5.0
 echo '#' >> ./0K_REPORT.txt
 date >> ./0K_REPORT.txt
 
+Launch()
+{
+# Launch COMMAND and save report
+echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n"${COMMAND} | qsub -N ${JOBNAME} ${WAIT}
+echo -e ${JOBNAME} >> ./0K_REPORT.txt
+echo -e ${COMMAND} | sed 's@^@   \| @' >> ./0K_REPORT.txt
+}
+WAIT=''
+
 for input in "$@"; do
     # Create output directory
     model=`echo ${input} | sed -e 's@.*Mapped\/@@g' | sed -e 's@\/.*@@g'`
-    newdir='Mapped/'${model}'/'${out_dir}
-    mkdir -p ${newdir}
+    outdir='Mapped/'${model}'/'${out_dir}
+    mkdir -p ${outdir}
     # Precise to eliminate empty lists for the loop
     shopt -s nullglob
     for i in ${input}/*${N_arg}*.bam; do
@@ -165,14 +174,11 @@ for input in "$@"; do
             # Remove suffix if R_arg is specified to 'true'
             current_file=`echo ${current_file} | sed -e "s@${N_arg}@@g"`
         fi
-        # Launch conversion to trace file in qsub
-        echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
-        bamCoverage \
-        --normalizeUsing $M_arg \
-        --outFileFormat $F_arg \
-        -b $i \
-        -o ${newdir}'/'${current_file}${NormName}'.'${file_ext}" | qsub -N Bam2${F_arg}_${current_file}
-        # Update REPORT
-        echo -e "Bam2${F_arg}_${current_file} | bamCoverage --normalizeUsing $M_arg --outFileFormat $F_arg -b $i -o ${newdir}'/'${current_file}${NormName}'.'${file_ext}" >> ./0K_REPORT.txt
+        
+        ## Define JOB and COMMAND and launch job
+        JOBNAME="Bam2${F_arg}_${current_file}"
+        COMMAND="bamCoverage --normalizeUsing $M_arg --outFileFormat $F_arg \
+        -b $i -o ${outdir}'/'${current_file}${NormName}'.'${file_ext}"
+        Launch
     done
 done
