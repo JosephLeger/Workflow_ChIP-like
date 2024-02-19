@@ -72,17 +72,31 @@ fi
 ################################################################################################################
 
 module load fastqc/0.11.9
-
+module load multiqc/1.13
 
 # Generate REPORT
 echo '#' >> ./0K_REPORT.txt
 date >> ./0K_REPORT.txt
 
+Launch()
+{
+# Launch COMMAND and save report
+echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n"${COMMAND} | qsub -N ${JOBNAME} ${WAIT}
+echo -e ${JOBNAME} >> ./0K_REPORT.txt
+echo -e ${COMMAND} | sed -r 's@\|@\n@g' | sed 's@^@   \| @' >> ./0K_REPORT.txt
+}
+WAIT=''
+
+### FASTQC
+
+# Initialize JOBLIST
+JOBLIST='_'
+
 # For each input file given as argument
 for input in "$@"; do
         # Create directory in QC folder following the same path than input path provided
-        newdir=QC/${input}
-        mkdir -p ${newdir}
+        outdir=QC/${input}
+        mkdir -p ${outdir}
         # Generate jobname replacing '/' by '_'
         name=`echo ${input} | sed -e 's@\/@_@g'`
         # Precise to eliminate empty lists for the loop
@@ -91,10 +105,29 @@ for input in "$@"; do
         for i in ${input}/*.fastq.gz ${input}/*.fq.gz; do
                 # Set variables for jobname
                 current_file=`echo $i | sed -e "s@${input}\/@@g" | sed -e "s@\.fastq\.gz\|\.fq\.gz@@g"`
-                # Launch QC as a qsub
-                echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
-                fastqc -o QC/${input} --noextract -f fastq $i" | qsub -N QC_${name}_${current_file}
-                # Update REPORT
-                echo -e "QC_${name}_${current_file} | fastqc -o QC/${input} --noextract -f fastq $i" >> ./0K_REPORT.txt  
+
+                ## Define JOB and COMMAND and launch
+                JOBNAME="QC_${name}_${current_file}"
+                COMMAND="fastqc -o ${outdir} --noextract -f fastq $i"
+		JOBLIST=${JOBLIST}','${JOBNAME}
+                Launch
         done
 done
+
+### MULTIQC
+
+# Create directory in QC folder for MultiQC
+outdir2='./QC/MultiQC'
+mkdir -p ${outdir2}
+# Create output name without strating 'QC/' and replacing '/' by '_'
+name=`echo ${outdir} | sed -e 's@\/@_@g'`
+
+## Define JOBNAME, COMMAND and launch with WAIT list
+JOBNAME="MultiQC_${name}"
+COMMAND="multiqc ${outdir} -o ${outdir2} -n ${name}_MultiQC"
+WAIT=`echo ${JOBLIST} | sed -e 's@_,@-hold_jid @'`
+Launch
+
+
+
+
