@@ -79,6 +79,7 @@ Syntax : ```sh 2_Trim.sh [options] <SE|PE> <input_dir>```
 ```bash
 sh 2_Trim.sh -U 'Both' -S 4:15 -L 5 -T 5 -M 36 -I ./Ref/TruSeq3-SE_NexteraPE-PE.fa:2:30:7 SE Raw
 ```
+*Note : after trimming, launch again QC step to ensure all adapters and low quality bases have been correctly removed.*
 
 ### 3. Alignment to genome
 Syntax : ```sh 3_Bowtie2.sh [options] <SE|PE> <input_dir> <refindex>```   
@@ -102,7 +103,7 @@ sh 5_PeakyFinders.sh -U 'MACS2' -N '_filtered' Mapped/mm39/BAM
 # using HOMER
 sh 5_PeakyFinders -U 'HOMER'-N '_filtered' -S 50 -M dnase -L 4 -C 2 ./Ref/mm39.chrom.sizes Mapped/mm39/BAM
 ```
-*Note : adapt -M option according to the type of data. Use **dna** for chromatin accessibility, **histone** for epigenetic marks and **factor** for CUT&RUN.*  
+*Note : adapt -M option according to the type of data. Use **dnase** for chromatin accessibility, **histone** for epigenetic marks and **factor** for CUT&RUN.*  
 
 ### 6. Peak Annotation
 Syntax : ```sh 6_Annotate.sh [options] <input_dir> <FASTA> <GTF>```  
