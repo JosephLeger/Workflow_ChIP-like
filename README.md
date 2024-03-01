@@ -6,7 +6,7 @@ It is deliberately not automated, and requires launching the scripts manually on
 
     
 <p align="center">
-<img src="https://github.com/JosephLeger/Epigenetics/blob/main/img/pipeline.png"  width="67%" height="67%">
+<img src="https://github.com/JosephLeger/Epigenetics/blob/main/img/pipeline.gif"  width="67%" height="67%">
 </p>
 
 ### Summary of Steps
