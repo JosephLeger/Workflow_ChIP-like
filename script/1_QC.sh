@@ -3,7 +3,7 @@
 ################################################################################################################
 ### HELP -------------------------------------------------------------------------------------------------------
 ################################################################################################################
-script_name='1_QC.sh'
+script_name='QC.sh'
 
 # Get user id for custom manual pathways
 usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
@@ -83,7 +83,7 @@ Launch()
 # Launch COMMAND and save report
 echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n"${COMMAND} | qsub -N ${JOBNAME} ${WAIT}
 echo -e ${JOBNAME} >> ./0K_REPORT.txt
-echo -e ${COMMAND} | sed -r 's@\|@\n@g' | sed 's@^@   \| @' >> ./0K_REPORT.txt
+echo -e ${COMMAND} |  sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
 
@@ -127,7 +127,3 @@ JOBNAME="MultiQC_${name}"
 COMMAND="multiqc ${outdir} -o ${outdir2} -n ${name}_MultiQC"
 WAIT=`echo ${JOBLIST} | sed -e 's@_,@-hold_jid @'`
 Launch
-
-
-
-
