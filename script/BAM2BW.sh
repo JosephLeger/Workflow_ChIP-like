@@ -27,7 +27,7 @@ ${BOLD}DESCRIPTION${END}\n\
 ${BOLD}OPTIONS${END}\n\
     ${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
         Define a suffix that input files must share to be considered. Allows to exclude unwanted peak files.\n\
-        Default = _sorted_unique_filtered\n\n\
+        Default = _filtered\n\n\
     ${BOLD}-F${END} ${UDL}outFormat${END}, ${BOLD}F${END}ormat\n\
         Select output files format. Could be 'bigwig' or 'bedgraph'.\n\
         Default = bigwig\n\n\
@@ -54,7 +54,7 @@ ${BOLD}EXAMPLE USAGE${END}\n\
 ################################################################################################################
 
 # Set default values
-N_arg="_sorted_unique_filtered"
+N_arg="_filtered"
 F_arg="bigwig"
 M_arg="None"
 R_arg="false"
