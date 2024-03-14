@@ -231,24 +231,27 @@ WAIT=''
 
 if [ ${U_arg} == 'HOMER' ]; then
     module load homer/4.11
-    # Create Tags output directories*
+    # Create Tags output directories
     mkdir -p HOMER/Tags
+    # Initialize SampleSheet
+    echo "ID,Tissue,Factor,Condition,Treatment,Replicate,bamReads,Peaks,PeakCaller" > HOMER/SampleSheet_HOMER.csv
+
     for input in "${@:2}"; do
         # Precise to eliminate empty lists for the loop
         shopt -s nullglob
         # For each matching BAM file in $input directory
         for i in ${input}/*${N_arg}*.bam; do
             # Genrate tag_name by removing pathway, suffix and .bam of read files
-            current_tag=`echo $i | sed -e "s@$input\/@@g" | sed -e "s@${N_arg}@@g" | sed -e 's@\.bam@@g'`
+            current_tag=`echo $i | sed -e "s@$input\/@@g" | sed -e 's@\.bam@@g'`
             # Create Peaks output directories
             outdir=HOMER/Peaks/${current_tag}
             mkdir -p ${outdir}
 
             # Set variables for the run :
             peaks_txt=${outdir}/${current_tag}_peaks.txt
-            peaks_bed=${outdir}/${current_tag}_peaks_sorted.bed
-            bedgraph=${outdir}/${current_tag}_peaks_sorted.bedgraph
-            bigwig=${outdir}/${current_tag}_peaks_sorted.bw
+            peaks_bed=${outdir}/${current_tag}_peaks.bed
+            bedgraph=${outdir}/${current_tag}_peaks.bedgraph
+            bigwig=${outdir}/${current_tag}_peaks.bw
 
             ## Define JOB and COMMAND and launch job
             JOBNAME="HOMER_${current_tag}"
@@ -260,11 +263,17 @@ if [ ${U_arg} == 'HOMER' ]; then
             genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph} \n\
             bedGraphToBigWig ${bedgraph} ${1} ${bigwig}"
             Launch
+	    # Append SampleSheet
+	    echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> HOMER/SampleSheet_HOMER.csv
         done
     done
 elif [ ${U_arg} == 'MACS2' ]; then
     module load gcc
     module load macs2
+    # Create Tags output directories
+    mkdir -p MACS2/Peaks
+    # Initialize SampleSheet
+    echo "ID,Tissue,Factor,Condition,Treatment,Replicate,bamReads,Peaks,PeakCaller" > MACS2/SampleSheet_MACS2.csv
 
     for input in "${@:1}"; do
         for file in ${input}/*${N_arg}*.bam; do    
@@ -276,9 +285,9 @@ elif [ ${U_arg} == 'MACS2' ]; then
 
             # Set variables for the run :
             narrrow_peak=${outdir}/${current_tag}_peaks.narrowPeak
-            peaks_bed=${outdir}/${current_tag}_peaks_sorted.bed
-            bedgraph=${outdir}/${current_tag}_peaks_sorted.bedgraph
-            bigwig=${outdir}/${current_tag}_peaks_sorted.bw
+            peaks_bed=${outdir}/${current_tag}_peaks.bed
+            bedgraph=${outdir}/${current_tag}_peaks.bedgraph
+            bigwig=${outdir}/${current_tag}_peaks.bw
             
             ## Define JOB and COMMAND and launch job
             JOBNAME="MACS2_${current_tag}"
@@ -289,6 +298,8 @@ elif [ ${U_arg} == 'MACS2' ]; then
             genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph} \n\
             bedGraphToBigWig ${bedgraph} ${1} ${bigwig}"
             Launch
+            # Append SampleSheet
+	    echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> HOMER/SampleSheet_HOMER.csv
         done
     done
 fi
