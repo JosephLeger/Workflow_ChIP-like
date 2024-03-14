@@ -26,7 +26,7 @@ ${BOLD}DESCRIPTION${END}\n\
     Generated BAM files are automatically sorted using picard for following steps.\n\n\
 
 ${BOLD}OPTIONS${END}\n\
-    ${BOLD}-U${END} ${UDL}boolean${END}, ${BOLD}U${END}nalignedReadsRemovam\n\
+    ${BOLD}-U${END} ${UDL}boolean${END}, ${BOLD}U${END}nalignedReadsRemoval\n\
         Whether remove unaligned reads to output file. \n\
         Default = 'False'\n\n\
     ${BOLD}-L${END} ${UDL}boolean${END}, ${BOLD}L${END}ocalAlignment\n\
@@ -156,7 +156,6 @@ WAIT=''
 
 # Create output directories
 model=`echo $3 | sed -r 's/^.*\/(.*)$/\1/'`
-mkdir -p ./Mapped/${model}/SAM
 mkdir -p ./Mapped/${model}/BAM
 
 if [ $1 == "SE" ]; then
