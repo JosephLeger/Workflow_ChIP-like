@@ -21,8 +21,8 @@ ${BOLD}SYNTHAX${END}\n\
         sh ${script_name} <input_dir1> <...>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
-        Perform quality check of FASTQ files using FastQC.\n\
-        It creates a new folder './QC/<input_dir>' in which quality check results are stored.\n\
+        Perform quality check of FASTQ files using FastQC and group results in a single file using MultiQC.\n\
+        It creates new folders './QC/<input_dir>' and './QC/MultiQC' in which quality check results are stored.\n\
         Output files are .html files for direct visualization and .zip files containing results.\n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
