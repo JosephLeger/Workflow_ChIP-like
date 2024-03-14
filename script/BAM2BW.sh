@@ -8,7 +8,7 @@ script_name='BAM2BW'
 # Get user id for custom manual pathways
 usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
 
-# Text font variabes
+# Text font variables
 END='\033[0m'
 BOLD='\033[1m'
 UDL='\033[4m'
