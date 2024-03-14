@@ -77,7 +77,7 @@ sh 1_QC.sh Raw
 ### 2. Trimming
 Syntax : ```sh 2_Trim.sh [options] <SE|PE> <input_dir>```  
 ```bash
-sh 2_Trim.sh -U 'Both' -S 4:15 -L 5 -T 5 -M 36 -I ./Ref/TruSeq3-SE_NexteraPE-PE.fa:2:30:7 SE Raw
+sh 2_Trim.sh -U 'Both' -S 4:15 -L 5 -T 5 -M 36 -I ./Ref/TruSeq3-SE_NexteraPE-PE.fa:2:30:7 -D True SE Raw
 ```
 *Note : after trimming, launch again QC step to ensure all adapters and low quality bases have been correctly removed.*
 
@@ -90,7 +90,7 @@ sh 3_Bowtie2.sh SE Trimmed/Trimmomatic ./Ref/refdata-Bowtie2-mm39/mm39
 ### 4. Filtering and indexing BAM
 Syntax : ```sh 4_BowtieCheck.sh [options] <input_dir1> <...>```  
 ```bash
-# -R false because duplicated were remove by Clumpify
+# Here we set -R false because duplicated reads were removed by Clumpify
 sh 4_BowtieCheck.sh -N '_sorted' -T 10 -R false Mapped/mm39/BAM 
 ```
 
