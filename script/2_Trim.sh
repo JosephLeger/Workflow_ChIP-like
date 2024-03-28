@@ -21,13 +21,13 @@ ${BOLD}SYNTHAX${END}\n\
     sh ${script_name} [options] <SE|PE> <input_dir>\n\n\
     
 ${BOLD}DESCRIPTION${END}\n\
-    Perform trimming of paired or unpaired FASTQ files using Trimmomatic and/or file optimization and duplicates removal using Clumpify.\n\
-    It creates a new folder './Trimmed/Trimmomatic' in which trimmed FASTQ files are stored, and './Trimmed/Clumpify' in which optimized files are stored.\n\
+    Perform file optimization and duplicates removal using Clumpify or/and trimming of paired or unpaired FASTQ files using Trimmomatic.\n\
+    It creates new folders './Trimmed/Trimmomatic' in which trimmed FASTQ files are stored and './Trimmed/Clumpify' in which optimized files are stored.\n\
     If files are paired, trimming results are stored in subfolders './Trimmed/Trimmomatic/Paired' and './Trimmed/Trimmomatic/Unpaired'. In this case, it is recommended to use resulting paired files for following steps.\n\
 
 ${BOLD}OPTIONS${END}\n\
     ${BOLD}-U${END} ${UDL}tool${END}, ${BOLD}U${END}sedTool\n\
-        Define tools to use for trimming. Could be 'Trimmomatic', 'Clumpify' or 'Both'. \n\
+        Define tools to use for filtering. Could be 'Trimmomatic', 'Clumpify' or 'Both'. \n\
         Default = 'Trimmomatic'\n\n\
 
     ${BOLD}Trimmomatic Options${END}\n\n\
@@ -56,7 +56,7 @@ For more details, please see Trimmomatic manual.\n\n\
 ${BOLD}ARGUMENTS${END}\n\
     ${BOLD}<SE|PE>${END}\n\
         Define whether fastq files are Single-End (SE) or Paired-End (PE).\n\
-        If SE is provided, each file is processed separately and give rise to an output file stored in ./Trimmed directory.\n\
+        If SE is provided, each file is processed separately and give rise to an output file stored in output directory.\n\
         If PE is provided, files are trimmed in both paired and unpaired way, giving rise to four output files from a pair of input files.\n\n\
     ${BOLD}<input_dir>${END}\n\
         Directory containing .fastq.gz or .fq.gz files to use as input for trimming.\n\
@@ -177,6 +177,7 @@ fi
 ### SCRIPT -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
+## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate REPORT
 echo '#' >> ./0K_REPORT.txt
 date >> ./0K_REPORT.txt
@@ -190,7 +191,7 @@ echo -e ${COMMAND} |  sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
 
-## DEFINE USED FUNCTIONS 
+## DEFINE FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CLUMPIFY_launch()
 {
 module load bbmap
@@ -202,9 +203,9 @@ JOBLIST='_'
 # Precise to eliminate empty lists for the loop
 shopt -s nullglob
 # For each read file
-for i in ${1}/*.fastq.gz ${1}/*.fq.gz; do
+for i in ${2}/*.fastq.gz ${2}/*.fq.gz; do
     # Set variables for jobname
-    current_file=`echo $i | sed -e "s@${1}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
+    current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
     # Define JOB and COMMAND and launch job
     JOBNAME="Clumpify_${current_file}"
     COMMAND="clumpify.sh in=${i} out=${outdir}/${current_file}_Clum.fastq.gz dedupe=${D_arg} subs=0"
@@ -269,12 +270,12 @@ elif [ ${1} == "PE" ]; then
 fi
 }
 
-
+## LAUNCH COMMANDS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ $U_arg == "Clumpify" ]; then
-    CLUMPIFY_launch $2
+    CLUMPIFY_launch $1 $2
 elif [ $U_arg == "Trimmomatic" ]; then
     TRIMMOMATIC_launch $1 $2
 elif [ $U_arg == "Both" ]; then
-    CLUMPIFY_launch $2
+    CLUMPIFY_launch $1 $2
     TRIMMOMATIC_launch $1 $2
 fi
