@@ -27,7 +27,7 @@ ${BOLD}DESCRIPTION${END}\n\
 ${BOLD}OPTIONS${END}\n\
         ${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
                 Define a suffix that input files must share to be considered. Allows to exclude unwanted peak files.\n\
-                Default = _peaks_annotated\n\n\
+                Default = _peaks\n\n\
         ${BOLD}-F${END} ${UDL}extension${END}, ${BOLD}F${END}ormatInput\n\
                 Define extension of files to use as input.\n\
                 It usually corresponds to 'bed' or 'txt'.\n\
@@ -35,8 +35,8 @@ ${BOLD}OPTIONS${END}\n\
 
 ${BOLD}ARGUMENTS${END}\n\
         ${BOLD}<input_dir>${END}\n\
-                Directory containing input peak file where look for motif.\n\
-                It usually corresponds to 'HOMER/Peaks'.\n\n\
+                Directory containing input peak files where look for motif.\n\
+                It usually corresponds to 'HOMER/Peaks' or 'MACS2/Peaks'.\n\n\
         ${BOLD}<fasta_file>${END}\n\
                 Path to genome reference FASTA file.\n
                 It can usually be downloaded from Ensembl genome browser.\n\n\
@@ -56,7 +56,7 @@ ${BOLD}EXAMPLE USAGE${END}\n\
 ################################################################################################################
 
 # Set default values
-N_arg="_peaks_annotated"
+N_arg="_peaks"
 F_arg='bed'
 
 # Change default values if another one is precised
@@ -74,15 +74,15 @@ while getopts ":N:F:" option; do
         esac
 done
 
-# Deal with options [-N] and arguments [$1|$2|...]
+# Deal with options [-N|-F] and arguments [$1|$2|...]
 shift $((OPTIND-1))
 
 ################################################################################################################
 ### ERRORS -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
-# Count .fastq.gz or .fq.gz files in provided directory
-files=$(shopt -s nullglob dotglob; echo $1/*.fastq.gz $1/*.fq.gz)
+# Count .<F_arg> files in provided directory
+files=$(shopt -s nullglob dotglob; echo $1/*/*.${F_arg})
 
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
         Help
@@ -92,12 +92,17 @@ elif [ $# -lt 3 ]; then
         echo "Error synthax : please use following synthax"
         echo "          sh ${script_name} <input_dir> <fatsa_file> <gtf_file> <motif_file>"
         exit
+elif (( !${#files} )); then
+    	# Error if provided directory is empty or does not exists
+    	echo 'Error : can not find files in provided directory. Please make sure the provided directory exists, and contains .${F_arg} files.'
+    	exit
 fi
 
 ################################################################################################################
 ### SCRIPT -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
+## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module load homer/4.11
 
 # Generate REPORT
@@ -115,6 +120,7 @@ WAIT=''
 
 motif=`echo ${4} | sed -e 's@\.motif@@g' | sed -e 's@.*\/@@g'` 
 
+## HOMER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 for current_tag in ${1}/*; do
     # Precise to eliminate empty lists for the loop
     shopt -s nullglob
