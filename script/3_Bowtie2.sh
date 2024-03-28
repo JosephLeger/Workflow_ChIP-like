@@ -21,16 +21,15 @@ ${BOLD}SYNTHAX${END}\n\
     sh ${script_name} [options] <SE|PE> <input_dir> <refindex>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
-    Perform alignement on genome reference from paired or unpaired fastq files using Bowtie2.\n\
-    It creates new folders './Mapped/<model>/SAM' and './Mapped/<model>/BAM' in which resulting aligned files are stored.\n\
-    Generated BAM files are automatically sorted using picard for following steps.\n\n\
+    Perform alignement on reference genome from paired or unpaired FASTQ files using Bowtie2, and sort resulting BAM files using Picard.\n\
+    It creates new folder './Mapped/<model>/BAM' in which resulting aligned and sorted BAM files are stored.\n\n\
 
 ${BOLD}OPTIONS${END}\n\
     ${BOLD}-U${END} ${UDL}boolean${END}, ${BOLD}U${END}nalignedReadsRemoval\n\
         Whether remove unaligned reads to output file. \n\
         Default = 'False'\n\n\
     ${BOLD}-L${END} ${UDL}boolean${END}, ${BOLD}L${END}ocalAlignment\n\
-        Whether use Local alignment instead of global.\n\
+        Whether use Local alignment instead of Global.\n\
         Default = 'False'\n\n\
     ${BOLD}-N${END} ${UDL}integer${END}, ${BOLD}N${END}umberOfMismatch\n\
         Maximum number of mismatch allowed while perform alignment. \n\
@@ -39,8 +38,8 @@ ${BOLD}OPTIONS${END}\n\
 ${BOLD}ARGUMENTS${END}\n\
     ${BOLD}<SE|PE>${END}\n\
         Define whether fastq files are Single-End (SE) or Paired-End (PE).\n\
-        If SE is provided, each file is aligned individually and give rise to an output file stored in './Mapped/<model>/SAM' directory.\n\
-        If PE is provided, files are aligned in pair (R1 and R2), giving rise to a single output file from a pair of input files.\n\n\
+        If SE is provided, each file is aligned individually and give rise to an output file.\n\
+        If PE is provided, files are aligned by pair (R1 and R2), giving rise to a single output file from a pair of input files.\n\n\
     ${BOLD}<input_dir>${END}\n\
         Directory containing .fastq.gz or .fq.gz files to use as input for alignment.\n\
         It usually corresponds to 'Raw' or 'Trimmed/Trimmomatic'.\n\n\
@@ -49,7 +48,7 @@ ${BOLD}ARGUMENTS${END}\n\
         Provided path must be ended by reference name (prefix common to files).\n\n\
         
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh ${script_name} ${BOLD}PE Trimmed/Trimmomatic/Paired /LAB-DATA/BiRD/users/${usr}/Ref/refdata-Bowtie2-mm39/mm39${END}\n"
+    sh ${script_name} ${BOLD}SE Trimmed/Trimmomatic /LAB-DATA/BiRD/users/${usr}/Ref/refdata-Bowtie2-mm39/mm39${END}\n"
 }
 
 ################################################################################################################
@@ -105,14 +104,14 @@ shift $((OPTIND-1))
 ### ERRORS -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
-# Count .fastq.gz pr .fq.gz files in provided directory
+# Count .fastq.gz or .fq.gz files in provided directory
 files=$(shopt -s nullglob dotglob; echo $2/*.fastq.gz $2/*.fq.gz)
 
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
     Help
     exit
 elif [ $# -lt 3 ]; then
-    # Error if no directory is provided
+    # Error if inoccrect number of agruments is provided
     echo "Error synthax : please use following synthax"
     echo "      sh ${script_name} <SE|PE> <input_dir> <refindex>"
     exit
@@ -136,6 +135,7 @@ fi
 ### SCRIPT -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
+## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module load bowtie2/2.5.1
 module load samtools/1.15.1
 module load picard/2.23.5
@@ -153,11 +153,11 @@ echo -e ${COMMAND} | sed -r 's@\|@\n@g' | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
 
-
 # Create output directories
 model=`echo $3 | sed -r 's/^.*\/(.*)$/\1/'`
 mkdir -p ./Mapped/${model}/BAM
 
+## BOWTIE2 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ $1 == "SE" ]; then
     # Precise to eliminate empty lists for the loop
     shopt -s nullglob
@@ -165,8 +165,7 @@ if [ $1 == "SE" ]; then
     for i in $2/*.fq.gz $2/*.fastq.gz; do
         # Set variables for jobname
         current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
-        
-        ## Define JOB and COMMAND and launch job
+        # Define JOB and COMMAND and launch job
         JOBNAME="Bowtie2_${1}_${model}_${current_file}"
         COMMAND="bowtie2 -p 2 -N ${N_arg} ${L_arg} ${U_arg}\
         -x $3 -U $i | picard SortSam INPUT=/dev/stdin \
@@ -187,8 +186,7 @@ elif [ $1 == "PE" ]; then
         # Define paired files
         R1=$i
         R2=`echo $i | sed -e 's/_R1/_R2/g'`
-        
-        ## Define JOB and COMMAND and launch job
+        # Define JOB and COMMAND and launch job
         JOBNAME="Bowtie2_${1}_${model}_${current_pair}"
         COMMAND="bowtie2 -p 2 -q -N ${N_arg} ${L_arg} ${U_arg} \
         -x $3 -1 ${R1} -2 ${R2} | picard SortSam INPUT=/dev/stdin \
