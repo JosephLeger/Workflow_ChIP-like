@@ -37,10 +37,10 @@ ${BOLD}OPTIONS${END}\n\
         Specifies the number of motifs of each length to find.\n\
         Default = 40\n\n\
     ${BOLD}-A${END} ${UDL}boolean${END}, ${BOLD}A${END}nnotatePeaks\n\
-        Specify whether peak annotation have to be run.\n\
+        Specify whether peaks annotation have to be run.\n\
         Default = true\n\n\
     ${BOLD}-M${END} ${UDL}boolean${END}, ${BOLD}M${END}otifFinding\n\
-        Specify whether motif enrichment analysis have to be run.\n\
+        Specify whether motifs enrichment analysis have to be run.\n\
         Default = true\n\n\
     ${BOLD}-F${END} ${UDL}extension${END}, ${BOLD}F${END}ormatInput\n\
         Define extension of files to use as input.\n\
@@ -48,8 +48,8 @@ ${BOLD}OPTIONS${END}\n\
 
 ${BOLD}ARGUMENTS${END}\n\
     ${BOLD}<input_dir>${END}\n\
-        Directory containing .bam files to process.\n\
-        It usually corresponds to 'Mapped/<model>/BAM'.\n\n\
+        Directory containing input peak files to annotate.\n\
+        It usually corresponds to 'HOMER/Peaks' or 'MACS2/Peaks'.\n\n\
     ${BOLD}<fasta_file>${END}\n\
         Path to genome reference FASTA file.\n
         It can usually be downloaded from Ensembl genome browser.\n\n\
@@ -74,7 +74,6 @@ A_arg=true
 M_arg=true
 F_arg='bed'
 
-
 # Change default values if another one is precised
 while getopts ":N:R:L:A:M:F:S:" option; do
     case $option in
@@ -94,7 +93,7 @@ while getopts ":N:R:L:A:M:F:S:" option; do
             F_arg=${OPTARG};;
         \?) # Error
             echo "Error : invalid option"
-            echo "      Allowed options are [-N|-R|-L|-A|-M|-F|-S]"
+            echo "      Allowed options are [-N|-R|-L|-S|-A|-M|-F]"
             echo "      Enter 'sh ${script_name} help' for more details"
             exit;;
         esac
@@ -127,13 +126,20 @@ shift $((OPTIND-1))
 ### ERRORS -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
+# Count .<F_arg> files in provided directory
+files=$(shopt -s nullglob dotglob; echo $1/*/*.${F_arg})
+
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
     Help
     exit
 elif [ $# != 3 ]; then
-    # Error if no input directory is provided
+    # Error if inoccrect number of agruments is provided
     echo "Error synthax : please use following synthax"
     echo "      sh ${script_name} [options] <input_dir> <fasta_file> <gtf_file>"
+    exit
+elif (( !${#files} )); then
+    # Error if provided directory is empty or does not exists
+    echo 'Error : can not find files in provided directory. Please make sure the provided directory exists, and contains .${F_arg} files.'
     exit
 fi
 
@@ -141,6 +147,7 @@ fi
 ### SCRIPT -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
+## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module load homer/4.11
 module load samtools/1.15.1
 
@@ -157,6 +164,7 @@ echo -e ${COMMAND} | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
 
+## HOMER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 for current_tag in ${1}/*; do
     # Precise to eliminate empty lists for the loop
     shopt -s nullglob
