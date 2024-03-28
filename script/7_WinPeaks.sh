@@ -81,7 +81,7 @@ shift $((OPTIND-1))
 ### ERRORS -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
-# Count .<F_arg> files in provided directory
+# Count files matching F_arg in provided directory
 files=$(shopt -s nullglob dotglob; echo $1/*/*.${F_arg})
 
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
