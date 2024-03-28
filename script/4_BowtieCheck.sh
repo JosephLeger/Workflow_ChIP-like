@@ -21,7 +21,7 @@ ${BOLD}SYNTHAX${END}\n\
     sh ${script_name} [options] <input_dir1> <...>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
-    Perform identification of duplicated and low quality reads in sorted SAM files, and convert SAM to BAM using samtools and picard.\n\
+    Perform identification of duplicated and low quality reads in sorted BAM files and remove them.\n\
     It generates '_Duplist_<filename>.txt' which contains duplicates list and '<filename>_unique_filtered.bam' files.\n\n\
 
 ${BOLD}OPTIONS${END}\n\
@@ -33,7 +33,7 @@ ${BOLD}OPTIONS${END}\n\
         Default = 10\n\n\
     ${BOLD}-R${END} ${UDL}boolean${END}, ${BOLD}R${END}emoveDuplicates\n\
         Whether remove duplicated or not.\n\
-        Default = false\n\n\
+        Default = False\n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
     ${BOLD}<input_dir>${END}\n\
@@ -44,7 +44,7 @@ ${BOLD}ARGUMENTS${END}\n\
         Several directories can be specified as argument in the same command line, allowing processing of multiple models simultaneously.\n\n\  
 
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh ${script_name} ${BOLD}-N${END} _sorted ${BOLD}-T${END} 10 ${BOLD}-R${END} false ${BOLD}Mapped/mm39/BAM${END}\n"
+    sh ${script_name} ${BOLD}-N${END} _sorted ${BOLD}-T${END} 10 ${BOLD}-R${END} False ${BOLD}Mapped/mm39/BAM${END}\n"
 }
 
 ################################################################################################################
@@ -54,7 +54,7 @@ ${BOLD}EXAMPLE USAGE${END}\n\
 # Set default values
 N_arg='_sorted'
 T_arg=10
-R_arg='false'
+R_arg='False'
 
 # Change default values if another one is precised
 while getopts ":T:N:R:" option; do
@@ -90,7 +90,7 @@ case $R_arg in
         exit;;
 esac
 
-# Deal with options [-N|-T] and arguments [$1|$2|...]
+# Deal with options [-N|-T|-R] and arguments [$1|$2|...]
 shift $((OPTIND-1))
 
 ################################################################################################################
@@ -101,7 +101,7 @@ if [ $# -eq 1 ] && [ $1 == "help" ]; then
         Help
         exit
 elif [ $# == 0 ]; then
-        # Error if no input directory is provided
+        # Error if inoccrect number of agruments is provided
         echo "Error synthax : please use following synthax"
         echo "      sh ${script_name} [options] <input_dir1> <...>"
         exit
@@ -122,6 +122,7 @@ fi
 ### SCRIPT -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
+## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module load samtools/1.15.1
 module load picard/2.23.5
 
@@ -138,6 +139,7 @@ echo -e ${COMMAND} | sed -r 's@\|@\n@g' | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
 
+## BOWTIE CHECK - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # For each input file given as argument
 for input in "$@"; do   
     # Precise to eliminate empty lists for the loop
@@ -146,8 +148,7 @@ for input in "$@"; do
         # Set variables for the run :
         model=`echo ${input} | sed -e 's@.*Mapped\/@@g' | sed -e 's@\/.*@@g'`
         current_file=`echo $i | sed -e "s@${input}\/@@" | sed -e 's@\.bam@@g'`
-
-        ## Define JOB and COMMAND and launch job
+        # Define JOB and COMMAND and launch job
         if [ ${R_arg} == 'true' ]; then
             JOBNAME="BowtieCheck_${model}_${current_file}"
             COMMAND="picard MarkDuplicates INPUT=${i} \
