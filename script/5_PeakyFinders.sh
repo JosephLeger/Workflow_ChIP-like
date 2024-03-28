@@ -22,16 +22,15 @@ ${BOLD}SYNTHAX${END}\n\
 
 ${BOLD}DESCRIPTION${END}\n\
     Perform peak calling from BAM files using HOMER or MACS2.\n\
-    Prepares tag files required for HOMER processing from BAM files, and performs peak calling.\n\
-    Peaks thus called are saved in a .txt file, sorted and then saved in .bed .bedgraph and .bw files. \n\
-    It creates new folders './HOMER/Tags/<tag_name>' and './HOMER/Peaks/<tag_name>' in which output files are stored.\n\n\
+    Peaks thus called are saved in a .txt or .narrowPeak file, sorted and then saved in .bed .bedgraph and .bw files. \n\
+    It creates new folders './HOMER/Tags/<tag_name>' and './HOMER/Peaks/<tag_name>' or './MACS2/Peaks/<tag_name>' in which output files are stored.\n\n\
 
 ${BOLD}OPTIONS${END}\n\n\
 
 ${BOLD}Common Options${END}\n\
     ${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
         Define a suffix that input files must share to be considered. Allows to exclude BAM files that are unfiltered or unwanted.\n\
-        Default = '_sorted_unique_filtered'\n\n\
+        Default = '_filtered'\n\n\
     ${BOLD}-U${END} ${UDL}toolName${END}, ${BOLD}U${END}sedTool\n\
         Define tool used for peak calling. Must be in 'HOMER' or 'MACS2'.\n\
         Default = 'HOMER'\n\n\
@@ -67,18 +66,20 @@ ${BOLD}HOMER Options${END}\n\
         Default=2\n\n\
 
     For more details, please see HOMER manual \n\ 
-    (http://homer.ucsd.edu/homer/ngs/peaks.html).\n\n\
+    (http://homer.ucsd.edu/homer/ngs/peaks.html)\n\n\
     
 ${BOLD}MACS2 Options${END}\n\n\
     ${BOLD}-G${END} ${UDL}size${END}, ${BOLD}G${END}enomSize\n\
-        \n\
-        Default=1.87e9\n\n\
+        Effective genome size. Default human = 2.7e9, default mouse : 1.87e9.\n\
+        Default = 1.87e9\n\n\
     ${BOLD}-H${END} ${UDL}integer${END}, S${BOLD}h${END}ift\n\
-        \n\
-        Default=50\n\n\
-    ${BOLD}-E${END} ${UDL}integer${END}, ${BOLD}E${END}xtend\n\
-        \n\
-        Default=100\n\n\
+        Value used to move cutting ends before applying ExtendSize parameter.\n\
+        Default = 50\n\n\
+    ${BOLD}-E${END} ${UDL}integer${END}, ${BOLD}E${END}xtendSize\n\
+        Extend reads by fixing fragment size to provided length.\n\
+        Default = 100\n\n\
+
+    For more details, please see MACS2 manual \n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
     ${BOLD}<chrom_size>${END}\n\
@@ -104,8 +105,9 @@ ${BOLD}EXAMPLE USAGE${END}\n\
 ################################################################################################################
 
 # Set default values
-N_arg='_sorted_filtered'
+N_arg='_filtered'
 U_arg='HOMER'
+#
 S_arg='auto'
 M_arg='factor'
 I_arg='None' 
@@ -176,7 +178,6 @@ esac
 # Deal with options [-N|-U|-S|-M|-I|-F|-L|-C|-T] and arguments [$1|$2|...]
 shift $((OPTIND-1))
 
-
 ################################################################################################################
 ### ERRORS -----------------------------------------------------------------------------------------------------
 ################################################################################################################
@@ -184,14 +185,9 @@ shift $((OPTIND-1))
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
     Help
     exit
-elif [ ${U_arg} == 'HOMER' ] && [ $# -lt 2 ]; then
-    # Error if no input directory is provided
-    echo "Error synthax : please use following synthax when using HOMER"
-    echo "      sh ${script_name} [options] <chr_size_file> <input_dir1> <...>"
-    exit
-elif [ ${U_arg} == 'MACS2' ] && [ $# -lt 1 ]; then
-    # Error if no input directory is provided
-    echo "Error synthax : please use following synthax when using MACS2"
+elif [ $# -lt 2 ]; then
+    # Error if inoccrect number of agruments is provided
+    echo "Error synthax : please use following synthax"
     echo "      sh ${script_name} [options] <chr_size_file> <input_dir1> <...>"
     exit
 else
@@ -207,11 +203,11 @@ else
     done
 fi
 
-
 ################################################################################################################
 ### SCRIPT -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
+## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module load samtools/1.15.1
 module load bedtools/2.30.0
 module load ucsc-bedgraphtobigwig/377
@@ -229,6 +225,7 @@ echo -e ${COMMAND} | sed -r 's@\|@\n@g' | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
 
+## HOMER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ ${U_arg} == 'HOMER' ]; then
     module load homer/4.11
     # Create Tags output directories
@@ -263,10 +260,12 @@ if [ ${U_arg} == 'HOMER' ]; then
             genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph} \n\
             bedGraphToBigWig ${bedgraph} ${1} ${bigwig}"
             Launch
-	    # Append SampleSheet
-	    echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> HOMER/SampleSheet_HOMER.csv
+	        # Append SampleSheet
+	        echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> HOMER/SampleSheet_HOMER.csv
         done
     done
+
+## MACS2 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 elif [ ${U_arg} == 'MACS2' ]; then
     module load gcc
     module load macs2
@@ -274,8 +273,11 @@ elif [ ${U_arg} == 'MACS2' ]; then
     mkdir -p MACS2/Peaks
     # Initialize SampleSheet
     echo "ID,Tissue,Factor,Condition,Treatment,Replicate,bamReads,Peaks,PeakCaller" > MACS2/SampleSheet_MACS2.csv
-
-    for input in "${@:1}"; do
+    
+    for input in "${@:2}"; do
+	# Precise to eliminate empty lists for the loop
+        shopt -s nullglob
+	# For each matching BAM file in $input directory
         for file in ${input}/*${N_arg}*.bam; do    
             # Define current tag
             current_tag=`echo ${file} | sed -e "s@${input}/@@g" | sed -e "s@${N_arg}@@g" | sed -e 's@\.bam@@g'`
@@ -285,21 +287,20 @@ elif [ ${U_arg} == 'MACS2' ]; then
 
             # Set variables for the run :
             narrrow_peak=${outdir}/${current_tag}_peaks.narrowPeak
-            peaks_bed=${outdir}/${current_tag}_peaks.bed
-            bedgraph=${outdir}/${current_tag}_peaks.bedgraph
-            bigwig=${outdir}/${current_tag}_peaks.bw
+            summits_bed=${outdir}/${current_tag}_summits.bed
+            bedgraph=${outdir}/${current_tag}_summits.bedgraph
+            bigwig=${outdir}/${current_tag}_summits.bw
             
             ## Define JOB and COMMAND and launch job
             JOBNAME="MACS2_${current_tag}"
-            COMMAND="macs2 callpeak -t ${file} -f BAM -g ${G_arg} 
+            COMMAND="macs2 callpeak -t ${file} -f BAM -g ${G_arg} \
             --nomodel --shift ${H_arg} --extsize ${E_arg} \
-            -n ${current_tag} --outdir ${newdir}\n\
-            grep -v '^#' ${narrow_peak} | awk -v OFS='\t' '{print \$1,\$2,\$3,\$4,\$5,\$6}' | bedtools sort > ${peaks_bed} \n\
-            genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph} \n\
+            -n ${current_tag} --outdir ${outdir} \n\
+            genomeCoverageBed -bga -i ${summits_bed} -g ${1} | bedtools sort > ${bedgraph} \n\
             bedGraphToBigWig ${bedgraph} ${1} ${bigwig}"
             Launch
             # Append SampleSheet
-	    echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> HOMER/SampleSheet_HOMER.csv
+	        echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> MACS2/SampleSheet_MACS2.csv
         done
     done
 fi
