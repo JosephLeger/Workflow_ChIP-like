@@ -21,7 +21,7 @@ ${BOLD}SYNTHAX${END}\n\
         sh ${script_name} <input_dir1> <...>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
-        Perform quality check of FASTQ files using FastQC and group results in a single file using MultiQC.\n\
+        Perform quality check of FASTQ files using FastQC and merge results into a single file using MultiQC.\n\
         It creates new folders './QC/<input_dir>' and './QC/MultiQC' in which quality check results are stored.\n\
         Output files are .html files for direct visualization and .zip files containing results.\n\n\
 
@@ -71,6 +71,7 @@ fi
 ### SCRIPT -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
+## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module load fastqc/0.11.9
 module load multiqc/1.13
 
@@ -87,9 +88,8 @@ echo -e ${COMMAND} |  sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
 
-### FASTQC
-
-# Initialize JOBLIST
+## FASTQC - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Initialize JOBLIST to wait before running MultiQC
 JOBLIST='_'
 
 # For each input file given as argument
@@ -105,8 +105,7 @@ for input in "$@"; do
         for i in ${input}/*.fastq.gz ${input}/*.fq.gz; do
                 # Set variables for jobname
                 current_file=`echo $i | sed -e "s@${input}\/@@g" | sed -e "s@\.fastq\.gz\|\.fq\.gz@@g"`
-
-                ## Define JOB and COMMAND and launch
+                # Define JOB and COMMAND and launch job while append JOBLIST
                 JOBNAME="QC_${name}_${current_file}"
                 COMMAND="fastqc -o ${outdir} --noextract -f fastq $i"
 		JOBLIST=${JOBLIST}','${JOBNAME}
@@ -114,8 +113,7 @@ for input in "$@"; do
         done
 done
 
-### MULTIQC
-
+## MULTIQC - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Create directory in QC folder for MultiQC
 outdir2='./QC/MultiQC'
 mkdir -p ${outdir2}
