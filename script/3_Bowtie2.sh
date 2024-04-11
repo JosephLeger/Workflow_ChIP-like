@@ -165,7 +165,7 @@ if [ $1 == "SE" ]; then
     for i in $2/*.fq.gz $2/*.fastq.gz; do
         # Set variables for jobname
         current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
-        # Define JOB and COMMAND and launch job
+        # Define JOBNAME and COMMAND and launch job
         JOBNAME="Bowtie2_${1}_${model}_${current_file}"
         COMMAND="bowtie2 -p 2 -N ${N_arg} ${L_arg} ${U_arg}\
         -x $3 -U $i | picard SortSam INPUT=/dev/stdin \
@@ -186,7 +186,7 @@ elif [ $1 == "PE" ]; then
         # Define paired files
         R1=$i
         R2=`echo $i | sed -e 's/_R1/_R2/g'`
-        # Define JOB and COMMAND and launch job
+        # Define JOBNAME and COMMAND and launch job
         JOBNAME="Bowtie2_${1}_${model}_${current_pair}"
         COMMAND="bowtie2 -p 2 -q -N ${N_arg} ${L_arg} ${U_arg} \
         -x $3 -1 ${R1} -2 ${R2} | picard SortSam INPUT=/dev/stdin \
