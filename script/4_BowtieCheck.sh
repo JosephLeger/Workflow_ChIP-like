@@ -148,7 +148,7 @@ for input in "$@"; do
         # Set variables for the run :
         model=`echo ${input} | sed -e 's@.*Mapped\/@@g' | sed -e 's@\/.*@@g'`
         current_file=`echo $i | sed -e "s@${input}\/@@" | sed -e 's@\.bam@@g'`
-        # Define JOB and COMMAND and launch job
+        # Define JOBNAME and COMMAND and launch job
         if [ ${R_arg} == 'true' ]; then
             JOBNAME="BowtieCheck_${model}_${current_file}"
             COMMAND="picard MarkDuplicates INPUT=${i} \
