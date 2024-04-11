@@ -250,7 +250,7 @@ if [ ${U_arg} == 'HOMER' ]; then
             bedgraph=${outdir}/${current_tag}_peaks.bedgraph
             bigwig=${outdir}/${current_tag}_peaks.bw
 
-            ## Define JOB and COMMAND and launch job
+            ## Define JOBNAME and COMMAND and launch job
             JOBNAME="HOMER_${current_tag}"
             COMMAND="makeTagDirectory HOMER/Tags/${current_tag} $i -fragLength ${S_arg} -single \n\
             findPeaks HOMER/Tags/${current_tag} -style ${M_arg} \
@@ -291,7 +291,7 @@ elif [ ${U_arg} == 'MACS2' ]; then
             bedgraph=${outdir}/${current_tag}_summits.bedgraph
             bigwig=${outdir}/${current_tag}_summits.bw
             
-            ## Define JOB and COMMAND and launch job
+            ## Define JOBNAME and COMMAND and launch job
             JOBNAME="MACS2_${current_tag}"
             COMMAND="macs2 callpeak -t ${file} -f BAM -g ${G_arg} \
             --nomodel --shift ${H_arg} --extsize ${E_arg} \
