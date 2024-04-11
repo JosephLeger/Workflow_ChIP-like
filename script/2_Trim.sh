@@ -206,7 +206,7 @@ shopt -s nullglob
 for i in ${2}/*.fastq.gz ${2}/*.fq.gz; do
     # Set variables for jobname
     current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
-    # Define JOB and COMMAND and launch job
+    # Define JOBNAME and COMMAND and launch job
     JOBNAME="Clumpify_${current_file}"
     COMMAND="clumpify.sh in=${i} out=${outdir}/${current_file}_Clum.fastq.gz dedupe=${D_arg} subs=0"
     JOBLIST=${JOBLIST}','${JOBNAME}
@@ -228,7 +228,7 @@ if [ ${1} == "SE" ]; then
     for i in ${2}/*.fastq.gz ${2}/*.fq.gz; do
         # Set variables for jobname
         current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
-        # Define JOB and COMMAND and launch job
+        # Define JOBNAME and COMMAND and launch job
         JOBNAME="Trim_${1}_${current_file}"
         COMMAND="conda activate base \n\
         conda activate Trimmomatic \n\
@@ -253,7 +253,7 @@ elif [ ${1} == "PE" ]; then
         current_R1=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
         current_R2=`echo ${current_R1} | sed -e 's/_R1/_R2/g'`
         current_pair=`echo ${current_R1} | sed -e 's@_R1@@g'`
-        # Define JOB and COMMAND and launch job
+        # Define JOBNAME and COMMAND and launch job
         JOBNAME="Trim_${1}_${current_pair}"
         COMMAND="conda activate Trimmomatic \n\
         trimmomatic ${1} -threads 4 $R1 $R2 \
