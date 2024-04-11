@@ -97,7 +97,7 @@ ${BOLD}ARGUMENTS${END}\n\
         Several directories can be specified as argument in the same command line, allowing processing of multiple models simultaneously.\n\n\  
 
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh ${script_name} -U 'HOMER' ${BOLD}-N${END} _unique_filtered ${BOLD}-S${END} 50 ${BOLD}-M${END} dnase ${BOLD}-I${END} none ${BOLD}-F${END} none ${BOLD}-L${END} 4 ${BOLD}-C${END} 2 ${BOLD}/LAB-DATA/BiRD/users/${usr}/Ref/Genome/mm39.chrom.sizes Mapped/mm39/BAM${END}\n"
+    sh ${script_name} -U 'HOMER' ${BOLD}-N${END} _unique_filtered ${BOLD}-S${END} 50 ${BOLD}-M${END} dnase ${BOLD}-I${END} none ${BOLD}-F${END} none ${BOLD}-L${END} 4 ${BOLD}-C${END} 2 ${BOLD}${usr}/Ref/Genome/mm39.chrom.sizes Mapped/mm39/BAM${END}\n"
 }
 
 ################################################################################################################
