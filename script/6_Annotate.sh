@@ -58,7 +58,7 @@ ${BOLD}ARGUMENTS${END}\n\
         It can usually be downloaded from Ensembl genome browser.\n\n\
 
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh ${script_name} ${BOLD}-N${END} _peaks ${BOLD}-R${END} 200 ${BOLD}-L${END} '8,10,12' ${BOLD}-A${END} true ${BOLD}-M${END} true ${BOLD}HOMER/Peaks /LAB-DATA/BiRD/users/jleger/Ref/Genome/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa /LAB-DATA/BiRD/users/jleger/Ref/Genome/Mus_musculus.GRCm39.108.gtf${END}\n"
+    sh ${script_name} ${BOLD}-N${END} _peaks ${BOLD}-R${END} 200 ${BOLD}-L${END} '8,10,12' ${BOLD}-A${END} true ${BOLD}-M${END} true ${BOLD}HOMER/Peaks ${usr}/Ref/Genome/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa ${usr}/Ref/Genome/Mus_musculus.GRCm39.108.gtf${END}\n"
 }
 
 ################################################################################################################
