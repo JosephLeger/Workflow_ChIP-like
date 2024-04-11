@@ -105,7 +105,7 @@ for input in "$@"; do
         for i in ${input}/*.fastq.gz ${input}/*.fq.gz; do
                 # Set variables for jobname
                 current_file=`echo $i | sed -e "s@${input}\/@@g" | sed -e "s@\.fastq\.gz\|\.fq\.gz@@g"`
-                # Define JOB and COMMAND and launch job while append JOBLIST
+                # Define JOBNAME and COMMAND and launch job while append JOBLIST
                 JOBNAME="QC_${name}_${current_file}"
                 COMMAND="fastqc -o ${outdir} --noextract -f fastq $i"
 		JOBLIST=${JOBLIST}','${JOBNAME}
