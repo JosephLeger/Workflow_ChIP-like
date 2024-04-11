@@ -171,13 +171,12 @@ for current_tag in ${1}/*; do
     for i in "${current_tag}"/*${N_arg}*.${F_arg}; do
         # Set variables for jobname
         current_file=`echo "${i}" | sed -e "s@.*\/@@g" | sed -e "s@\.${F_arg}@@g"`
-        
+        # Define JOBNAME and COMMAND and launch job
         if [ ${A_arg} == 'true' ]; then
             JOBNAME="AnnotatePeaks_${current_file}"
             COMMAND="annotatePeaks.pl ${i} ${2} -gtf ${3} > ${current_tag}/${current_file}_annotated.txt"
             Launch
         fi
-
         if [ ${M_arg} == 'true' ]; then
             JOBNAME="AnnotateMotifs_${current_file}"
             COMMAND="findMotifsGenome.pl ${i} ${2} ${current_tag} -size ${R_arg} -len ${L_arg} -S ${S_arg}"
