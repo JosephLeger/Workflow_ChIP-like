@@ -48,7 +48,7 @@ ${BOLD}ARGUMENTS${END}\n\
         Provided path must be ended by reference name (prefix common to files).\n\n\
         
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh ${script_name} ${BOLD}SE Trimmed/Trimmomatic /LAB-DATA/BiRD/users/${usr}/Ref/refdata-Bowtie2-mm39/mm39${END}\n"
+    sh ${script_name} ${BOLD}SE Trimmed/Trimmomatic ${usr}/Ref/refdata-Bowtie2-mm39/mm39${END}\n"
 }
 
 ################################################################################################################
