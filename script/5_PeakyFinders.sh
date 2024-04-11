@@ -243,14 +243,14 @@ if [ ${U_arg} == 'HOMER' ]; then
             # Create Peaks output directories
             outdir=HOMER/Peaks/${current_tag}
             mkdir -p ${outdir}
-
+	    
             # Set variables for the run :
             peaks_txt=${outdir}/${current_tag}_peaks.txt
             peaks_bed=${outdir}/${current_tag}_peaks.bed
             bedgraph=${outdir}/${current_tag}_peaks.bedgraph
             bigwig=${outdir}/${current_tag}_peaks.bw
-
-            ## Define JOBNAME and COMMAND and launch job
+	    
+            # Define JOBNAME and COMMAND and launch job
             JOBNAME="HOMER_${current_tag}"
             COMMAND="makeTagDirectory HOMER/Tags/${current_tag} $i -fragLength ${S_arg} -single \n\
             findPeaks HOMER/Tags/${current_tag} -style ${M_arg} \
@@ -284,14 +284,14 @@ elif [ ${U_arg} == 'MACS2' ]; then
             # Create output dir
             outdir=MACS2/Peaks/${current_tag}
             mkdir -p ${outdir}
-
+	    
             # Set variables for the run :
             narrrow_peak=${outdir}/${current_tag}_peaks.narrowPeak
             summits_bed=${outdir}/${current_tag}_summits.bed
             bedgraph=${outdir}/${current_tag}_summits.bedgraph
             bigwig=${outdir}/${current_tag}_summits.bw
-            
-            ## Define JOBNAME and COMMAND and launch job
+	    
+            # Define JOBNAME and COMMAND and launch job
             JOBNAME="MACS2_${current_tag}"
             COMMAND="macs2 callpeak -t ${file} -f BAM -g ${G_arg} \
             --nomodel --shift ${H_arg} --extsize ${E_arg} \
