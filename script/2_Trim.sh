@@ -42,7 +42,7 @@ ${BOLD}OPTIONS${END}\n\
         Default = 3\n\n\
     ${BOLD}-M${END} ${UDL}length${END}, ${BOLD}M${END}inlen\n\
         Drop the read if it is below a specified length.\n\
-        Default = 36\n\n\
+        Default = 1\n\n\
     ${BOLD}-I${END} ${UDL}fastaWithAdaptersEtc${END}:${UDL}seed mismatches${END}:${UDL}palindrome clip threshold${END}:${UDL}simple clip threshold${END}, ${BOLD}I${END}lluminaclip\n\
         Cut adapter and other illumina-specific sequences from the read.\n\
         Default = None\n\n\
@@ -75,7 +75,7 @@ U_arg='Trimmomatic'
 S_arg="4:15"
 L_arg=3
 T_arg=3
-M_arg=36
+M_arg=1
 I_arg='None'
 D_arg='False'
 
