@@ -101,7 +101,6 @@ fi
 ### SCRIPT -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
-
 ## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module load samtools/1.15.1
 
@@ -117,42 +116,6 @@ echo -e ${JOBNAME} >> ./0K_REPORT.txt
 echo -e ${COMMAND} | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
-
-
-## DEFINE FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-SORT_launch()
-{
-module load picard/2.23.5
-# Initialize JOBLIST to wait before running index
-JOBLIST='_'
-# Sort each provided file
-for file in ${1}/*{N_arg}*.bam; do
-	# Set variable for outputs
-	output=`echo ${file} | sed -e 's@\.bam@_sorted\.bam@g'`
-	# Define JOBNAME and COMMAND and launch job while append JOBLIST
-	JOBNAME="sortBAM_${file}"
-	COMMAND="picard SortSam INPUT=${file} \
-	OUTPUT=${output} \
-	VALIDATION_STRINGENCY=LENIENT \
-	TMP_DIR=tmp \
-	SORT_ORDER=coordinate"
-	JOBLIST=${JOBLIST}','${JOBNAME}
-	Launch
-done
-}
-
-INDEX_launch()
-{
-# Initialize WAIT based on JOBLIST (empty or not)
-WAIT=`echo ${JOBLIST} | sed -e 's@_,@-hold_jid @'`
-# Launch index on files or files_sorted
-for file in ${1}/*{N_arg}*${newsuffix}.bam; do
-	JOBNAME="indexBAM_${file}"
-	COMMAND="samtools index ${file}"
-	Launch
-done
-}
 
 ## SORT BAM - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 if [ ${S_arg} == 'true' ]; then
@@ -191,11 +154,3 @@ for file in ${1}/*${N_arg}*${newsuffix}.bam; do
 	COMMAND="samtools index ${file}"
 	Launch
 done
-
-
-
-
-
-
-
-
