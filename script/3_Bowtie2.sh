@@ -61,7 +61,7 @@ L_arg='false'
 N_arg=0
 
 # Change default values if another one is precised
-while getopts ":U:S:L:T:M:I:" option; do
+while getopts ":U:L:N:" option; do
     case $option in
         U) # UNALIGNED
             U_arg=${OPTARG};;
@@ -104,21 +104,22 @@ shift $((OPTIND-1))
 ### ERRORS -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
-# Count .fastq.gz or .fq.gz files in provided directory
-files=$(shopt -s nullglob dotglob; echo $2/*.fastq.gz $2/*.fq.gz)
-
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
     Help
     exit
-elif [ $# -lt 3 ]; then
+elif [ $# -ne 3 ]; then
     # Error if inoccrect number of agruments is provided
     echo "Error synthax : please use following synthax"
     echo "      sh ${script_name} <SE|PE> <input_dir> <refindex>"
     exit
-elif (( !${#files} )); then
-    # Error if provided directory is empty or does not exists
-    echo -e "Error : can not find files in $2 directory. Please make sure the provided directory exists, and contains .fastq.gz or .fq.gz files."
-    exit
+elif [ $(ls $2/*.fastq.gz $2/*.fq.gz 2>/dev/null | wc -l) -lt 1 ]; then
+	# Error if provided directory is empty or does not exists
+	echo -e "Error : can not find files in $2 directory. Please make sure the provided directory exists, and contains .fastq.gz or .fq.gz files."
+	exit
+elif [ $1 == "PE" ] && [[ $(ls $2/*_R1*.fastq.gz $2/*_R1*.fq.gz 2>/dev/null | wc -l) -eq 0 || $(ls $2/*_R1*.fastq.gz $2/*_R1*.fq.gz 2>/dev/null | wc -l) -ne $(ls $2/*_R2*.fastq.gz $2/*_R2*.fq.gz 2>/dev/null | wc -l) ]]; then
+	# Error if PE is selected but no paired files are detected
+	echo 'Error : PE is selected but can not find R1 and R2 files for each pair. Please make sure files are Paired-End.'
+	exit
 else
     # Error if the correct number of arguments is provided but the first does not match 'SE' or 'PE'
     case $1 in
