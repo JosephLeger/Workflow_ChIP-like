@@ -43,7 +43,7 @@ ${BOLD}OPTIONS${END}\n\
         Specify whether motifs enrichment analysis have to be run.\n\
         Default = true\n\n\
     ${BOLD}-F${END} ${UDL}extension${END}, ${BOLD}F${END}ormatInput\n\
-        Define extension of files to use as input.\n\
+        Define extension of peak files to use as input.\n\
         Default = 'bed'\n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
@@ -54,7 +54,7 @@ ${BOLD}ARGUMENTS${END}\n\
         Path to genome reference FASTA file.\n
         It can usually be downloaded from Ensembl genome browser.\n\n\
     ${BOLD}<gtf_file>${END}\n\
-        Path to GTF file containing annotation that correspond to provided FASTA file.\n
+        Path to GTF file containing annotation that corresponds to provided FASTA file.\n
         It can usually be downloaded from Ensembl genome browser.\n\n\
 
 ${BOLD}EXAMPLE USAGE${END}\n\
@@ -75,7 +75,7 @@ M_arg=true
 F_arg='bed'
 
 # Change default values if another one is precised
-while getopts ":N:R:L:A:M:F:S:" option; do
+while getopts ":N:R:L:S:A:M:F:" option; do
     case $option in
         N) # SUFFIX TO DISCRIMINATE FILES FOR INPUT
             N_arg=${OPTARG};;
@@ -126,21 +126,18 @@ shift $((OPTIND-1))
 ### ERRORS -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
-# Count .<F_arg> files in provided directory
-files=$(shopt -s nullglob dotglob; echo $1/*/*.${F_arg})
-
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
     Help
     exit
-elif [ $# != 3 ]; then
+elif [ $# -ne 3 ]; then
     # Error if inoccrect number of agruments is provided
     echo "Error synthax : please use following synthax"
     echo "      sh ${script_name} [options] <input_dir> <fasta_file> <gtf_file>"
     exit
-elif (( !${#files} )); then
-    # Error if provided directory is empty or does not exists
-    echo 'Error : can not find files in provided directory. Please make sure the provided directory exists, and contains .${F_arg} files.'
-    exit
+elif [ $(ls $1/*/*${N_arg}*.${F_arg} 2>/dev/null | wc -l) -lt 1 ]; then
+	# Error if provided directory is empty or does not exists
+	echo -e "Error : can not find files in provided directory. Please make sure the provided directory exists, and contains .${F_arg} files."
+	exit
 fi
 
 ################################################################################################################
