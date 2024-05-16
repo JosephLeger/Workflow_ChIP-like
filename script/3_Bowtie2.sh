@@ -18,37 +18,37 @@ Help()
 {
 echo -e "${BOLD}####### BOWTIE2 MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-    sh ${script_name} [options] <SE|PE> <input_dir> <refindex>\n\n\
+	sh ${script_name} [options] <SE|PE> <input_dir> <refindex>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
-    Perform alignement on reference genome from paired or unpaired FASTQ files using Bowtie2, and sort resulting BAM files using Picard.\n\
-    It creates new folder './Mapped/<model>/BAM' in which resulting aligned and sorted BAM files are stored.\n\n\
+	Perform alignement on reference genome from paired or unpaired FASTQ files using Bowtie2, and sort resulting BAM files using Picard.\n\
+	It creates new folder './Mapped/<model>/BAM' in which resulting aligned and sorted BAM files are stored.\n\n\
 
 ${BOLD}OPTIONS${END}\n\
-    ${BOLD}-U${END} ${UDL}boolean${END}, ${BOLD}U${END}nalignedReadsRemoval\n\
-        Whether remove unaligned reads to output file. \n\
-        Default = 'False'\n\n\
-    ${BOLD}-L${END} ${UDL}boolean${END}, ${BOLD}L${END}ocalAlignment\n\
-        Whether use Local alignment instead of Global.\n\
-        Default = 'False'\n\n\
-    ${BOLD}-N${END} ${UDL}integer${END}, ${BOLD}N${END}umberOfMismatch\n\
-        Maximum number of mismatch allowed while perform alignment. \n\
-        Default = 0\n\n\
+	${BOLD}-U${END} ${UDL}boolean${END}, ${BOLD}U${END}nalignedReadsRemoval\n\
+		Whether remove unaligned reads to output file. \n\
+		Default = 'False'\n\n\
+	${BOLD}-L${END} ${UDL}boolean${END}, ${BOLD}L${END}ocalAlignment\n\
+		Whether use Local alignment instead of Global.\n\
+		Default = 'False'\n\n\
+	${BOLD}-N${END} ${UDL}integer${END}, ${BOLD}N${END}umberOfMismatch\n\
+		Maximum number of mismatch allowed while perform alignment. \n\
+		Default = 0\n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
-    ${BOLD}<SE|PE>${END}\n\
-        Define whether fastq files are Single-End (SE) or Paired-End (PE).\n\
-        If SE is provided, each file is aligned individually and give rise to an output file.\n\
-        If PE is provided, files are aligned by pair (R1 and R2), giving rise to a single output file from a pair of input files.\n\n\
-    ${BOLD}<input_dir>${END}\n\
-        Directory containing .fastq.gz or .fq.gz files to use as input for alignment.\n\
-        It usually corresponds to 'Raw' or 'Trimmed/Trimmomatic'.\n\n\
-    ${BOLD}<refindex>${END}\n\
-        Path to reference previously indexed using bowtie2-build.\n\
-        Provided path must be ended by reference name (prefix common to files).\n\n\
+	${BOLD}<SE|PE>${END}\n\
+		Define whether fastq files are Single-End (SE) or Paired-End (PE).\n\
+		If SE is provided, each file is aligned individually and give rise to an output file.\n\
+		If PE is provided, files are aligned by pair (R1 and R2), giving rise to a single output file from a pair of input files.\n\n\
+	${BOLD}<input_dir>${END}\n\
+		Directory containing .fastq.gz or .fq.gz files to use as input for alignment.\n\
+		It usually corresponds to 'Raw' or 'Trimmed/Trimmomatic'.\n\n\
+	${BOLD}<refindex>${END}\n\
+		Path to reference previously indexed using bowtie2-build.\n\
+		Provided path must be ended by reference name (prefix common to files).\n\n\
         
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh ${script_name} ${BOLD}SE Trimmed/Trimmomatic ${usr}/Ref/refdata-Bowtie2-mm39/mm39${END}\n"
+	sh ${script_name} ${BOLD}SE Trimmed/Trimmomatic ${usr}/Ref/refdata-Bowtie2-mm39/mm39${END}\n"
 }
 
 ################################################################################################################
@@ -62,39 +62,39 @@ N_arg=0
 
 # Change default values if another one is precised
 while getopts ":U:L:N:" option; do
-    case $option in
-        U) # UNALIGNED
-            U_arg=${OPTARG};;
-        L) # LOCAL
-            L_arg=${OPTARG};;
-        N) # NUMBER OF ALLOWED MISSMATCH
-            N_arg=${OPTARG};;
-        \?) # Error
-            echo "Error : invalid option"
-            echo "      Allowed options are [-U|-L|-N]"
-            echo "      Enter 'sh ${script_name} help' for more details"
-            exit;;
-    esac
+	case $option in
+		U) # UNALIGNED
+			U_arg=${OPTARG};;
+		L) # LOCAL
+			L_arg=${OPTARG};;
+		N) # NUMBER OF ALLOWED MISSMATCH
+			N_arg=${OPTARG};;
+		\?) # Error
+			echo "Error : invalid option"
+			echo "      Allowed options are [-U|-L|-N]"
+			echo "      Enter 'sh ${script_name} help' for more details"
+			exit;;
+	esac
 done
 
 # Checking if provided option values are correct
 case $U_arg in
-    TRUE|True|true|T|t) 
-        U_arg='--no-unal'' ';;
-    FALSE|False|false|F|f) 
-        U_arg='';;
-    *) 
-        echo "Error value : -U argument must be 'true' or 'false'"
-        exit;;
+	TRUE|True|true|T|t) 
+		U_arg='--no-unal'' ';;
+	FALSE|False|false|F|f) 
+		U_arg='';;
+	*) 
+		echo "Error value : -U argument must be 'true' or 'false'"
+		exit;;
 esac
 case $L_arg in
-    TRUE|True|true|T|t) 
-        L_arg='--local';;
-    FALSE|False|false|F|f) 
-        L_arg='';;
-    *) 
-        echo "Error value : -L argument must be 'true' or 'false'"
-        exit;;
+	TRUE|True|true|T|t) 
+		L_arg='--local';;
+	FALSE|False|false|F|f) 
+		L_arg='';;
+	*) 
+		echo "Error value : -L argument must be 'true' or 'false'"
+		exit;;
 esac
 
 # Deal with options [-U|-L|-N] and arguments [$1|$2]
@@ -105,13 +105,13 @@ shift $((OPTIND-1))
 ################################################################################################################
 
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
-    Help
-    exit
+	Help
+	exit
 elif [ $# -ne 3 ]; then
-    # Error if inoccrect number of agruments is provided
-    echo "Error synthax : please use following synthax"
-    echo "      sh ${script_name} <SE|PE> <input_dir> <refindex>"
-    exit
+	# Error if inoccrect number of agruments is provided
+	echo "Error synthax : please use following synthax"
+	echo "      sh ${script_name} <SE|PE> <input_dir> <refindex>"
+	exit
 elif [ $(ls $2/*.fastq.gz $2/*.fq.gz 2>/dev/null | wc -l) -lt 1 ]; then
 	# Error if provided directory is empty or does not exists
 	echo -e "Error : can not find files in $2 directory. Please make sure the provided directory exists, and contains .fastq.gz or .fq.gz files."
@@ -121,15 +121,15 @@ elif [ $1 == "PE" ] && [[ $(ls $2/*_R1*.fastq.gz $2/*_R1*.fq.gz 2>/dev/null | wc
 	echo 'Error : PE is selected but can not find R1 and R2 files for each pair. Please make sure files are Paired-End.'
 	exit
 else
-    # Error if the correct number of arguments is provided but the first does not match 'SE' or 'PE'
-    case $1 in
-        PE|SE) 
-            ;;
-        *) 
-            echo "Error Synthax : please use following synthax"
-            echo "       sh ${script_name} <SE|PE> <input_dir> <refindex>"
-            exit;;
-    esac
+	# Error if the correct number of arguments is provided but the first does not match 'SE' or 'PE'
+	case $1 in
+		PE|SE) 
+			;;
+        	*) 
+			echo "Error Synthax : please use following synthax"
+			echo "       sh ${script_name} <SE|PE> <input_dir> <refindex>"
+			exit;;
+	esac
 fi
 
 ################################################################################################################
@@ -160,42 +160,42 @@ mkdir -p ./Mapped/${model}/BAM
 
 ## BOWTIE2 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ $1 == "SE" ]; then
-    # Precise to eliminate empty lists for the loop
-    shopt -s nullglob
-    # For each read file
-    for i in $2/*.fq.gz $2/*.fastq.gz; do
-        # Set variables for jobname
-        current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
-        # Define JOBNAME and COMMAND and launch job
-        JOBNAME="Bowtie2_${1}_${model}_${current_file}"
-        COMMAND="bowtie2 -p 2 -N ${N_arg} ${L_arg} ${U_arg}\
-        -x $3 -U $i | picard SortSam INPUT=/dev/stdin \
-        OUTPUT=Mapped/${model}/BAM/${current_file}_sorted.bam \
-        VALIDATION_STRINGENCY=LENIENT \
-        TMP_DIR=tmp \
-        SORT_ORDER=coordinate"
-        Launch
-    done
+	# Precise to eliminate empty lists for the loop
+	shopt -s nullglob
+	# For each read file
+	for i in $2/*.fq.gz $2/*.fastq.gz; do
+		# Set variables for jobname
+		current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
+		# Define JOBNAME and COMMAND and launch job
+		JOBNAME="Bowtie2_${1}_${model}_${current_file}"
+		COMMAND="bowtie2 -p 2 -N ${N_arg} ${L_arg} ${U_arg}\
+		-x $3 -U $i | picard SortSam INPUT=/dev/stdin \
+		OUTPUT=Mapped/${model}/BAM/${current_file}_sorted.bam \
+		VALIDATION_STRINGENCY=LENIENT \
+		TMP_DIR=tmp \
+		SORT_ORDER=coordinate"
+		Launch
+	done
 
 elif [ $1 == "PE" ]; then
-    # Precise to eliminate empty lists for the loop
-    shopt -s nullglob
-    # If PE (Paired-End) is selected, each paired files are aligned together
-    for i in $2/*_R1*.fastq.gz $2/*_R1*.fq.gz; do
-        # Set variables for jobname
-        current_pair=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's/_R1//g' | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
-        # Define paired files
-        R1=$i
-        R2=`echo $i | sed -e 's/_R1/_R2/g'`
-        # Define JOBNAME and COMMAND and launch job
-        JOBNAME="Bowtie2_${1}_${model}_${current_pair}"
-        COMMAND="bowtie2 -p 2 -q -N ${N_arg} ${L_arg} ${U_arg} \
-        -x $3 -1 ${R1} -2 ${R2} | picard SortSam INPUT=/dev/stdin \
-        OUTPUT=Mapped/${model}/BAM/${current_pair}_sorted.bam \
-        VALIDATION_STRINGENCY=LENIENT \
-        TMP_DIR=tmp \
-        SORT_ORDER=coordinate"
-        Launch    
-    done
+	# Precise to eliminate empty lists for the loop
+	shopt -s nullglob
+	# If PE (Paired-End) is selected, each paired files are aligned together
+	for i in $2/*_R1*.fastq.gz $2/*_R1*.fq.gz; do
+		# Set variables for jobname
+		current_pair=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's/_R1//g' | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
+		# Define paired files
+		R1=$i
+		R2=`echo $i | sed -e 's/_R1/_R2/g'`
+		# Define JOBNAME and COMMAND and launch job
+		JOBNAME="Bowtie2_${1}_${model}_${current_pair}"
+		COMMAND="bowtie2 -p 2 -q -N ${N_arg} ${L_arg} ${U_arg} \
+		-x $3 -1 ${R1} -2 ${R2} | picard SortSam INPUT=/dev/stdin \
+		OUTPUT=Mapped/${model}/BAM/${current_pair}_sorted.bam \
+		VALIDATION_STRINGENCY=LENIENT \
+		TMP_DIR=tmp \
+		SORT_ORDER=coordinate"
+		Launch    
+	done
 
 fi
