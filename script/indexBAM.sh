@@ -53,6 +53,8 @@ while getopts ":M:N:R:" option; do
 	case $option in
 		N) # NAME OF FILE (SUFFIX)
 			N_arg=${OPTARG};;
+		S) # NAME OF FILE (SUFFIX)
+			S_arg=${OPTARG};;
 		\?) # Error
 			echo "Error : invalid option"
 			echo "      Allowed options are [-N]"
