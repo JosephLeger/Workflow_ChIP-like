@@ -53,21 +53,18 @@ ${BOLD}EXAMPLE USAGE${END}\n\
 
 # Set default values
 N_arg='_filtered'
-M_arg=`pwd | sed -e 's@.*\/@@g'`
 R_arg='false'
 
 # Change default values if another one is precised
-while getopts ":M:N:R:" option; do
+while getopts ":N:R:" option; do
 	case $option in
-		M) # CURRENT EPIGENETIC MARK TO MERGE
-			M_arg=${OPTARG};;
 		N) # NAME OF FILE (SUFFIX)
 			N_arg=${OPTARG};;
 		R) # REMOVE SUFFIX IN OUTPUT FILENAME
 			R_arg=${OPTARG};;
 		\?) # Error
 			echo "Error : invalid option"
-			echo "      Allowed options are [-N|-M|-R]"
+			echo "      Allowed options are [-N|-R]"
 			echo "      Enter 'sh ${script_name} help' for more details"
 			exit;;
 	esac
@@ -83,7 +80,7 @@ case $R_arg in
 		echo "Error value : -R argument must be 'true' or 'false'"
 		exit;;
 esac
-# Deal with options [-M|-S] and arguments [$1|$2|...]
+# Deal with options [-N|-R] and arguments [$1|$2|...]
 shift $((OPTIND-1))
 
 ################################################################################################################
