@@ -18,33 +18,33 @@ Help()
 {
 echo -e "${BOLD}####### BAM2BW MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-    sh ${script_name} [options] <input_dir>\n\n\
+	sh ${script_name} [options] <input_dir>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
-    Perform conversion of BAM files to BigWig format using deeptools bamCoverage.\n\
-    It creates a new folder 'BIGWIG' next to the input directory in which output files are stored.\n\n\
+	Perform conversion of BAM files to BigWig format using deeptools bamCoverage.\n\
+	It creates a new folder 'BIGWIG' next to the input directory in which output files are stored.\n\n\
     
 ${BOLD}OPTIONS${END}\n\
-    ${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
-        Define a suffix that input files must share to be considered. Allows to exclude unwanted BAM files.\n\
-        Default = _filtered\n\n\
-    ${BOLD}-F${END} ${UDL}outFormat${END}, ${BOLD}F${END}ormat\n\
-        Select output files format. Must be in 'bigwig' or 'bedgraph'.\n\
-        Default = bigwig\n\n\
-    ${BOLD}-M${END} ${UDL}normalizationMethod${END}, Normalization${BOLD}M${END}ethod\n\
-        Select nromalization method to apply. Must be in 'RPKM', 'CPM', 'BPM', 'RPGC' or 'None'.\n\
-        Default = None\n\n\
-    ${BOLD}-R${END} ${UDL}boolean${END}, ${BOLD}R${END}emoveSuffix\n\
-        Precise whether specified suffix from input filename (-N argument) have to be removed from output filename.\n\
-        Default = false\n\n\
+	${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
+		Define a suffix that input files must share to be considered. Allows to exclude unwanted BAM files.\n\
+		Default = _filtered\n\n\
+	${BOLD}-F${END} ${UDL}outFormat${END}, ${BOLD}F${END}ormat\n\
+		Select output files format. Must be in 'bigwig' or 'bedgraph'.\n\
+		Default = bigwig\n\n\
+	${BOLD}-M${END} ${UDL}normalizationMethod${END}, Normalization${BOLD}M${END}ethod\n\
+		Select nromalization method to apply. Must be in 'RPKM', 'CPM', 'BPM', 'RPGC' or 'None'.\n\
+		Default = None\n\n\
+	${BOLD}-R${END} ${UDL}boolean${END}, ${BOLD}R${END}emoveSuffix\n\
+		Precise whether specified suffix from input filename (-N argument) have to be removed from output filename.\n\
+		Default = false\n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
-    ${BOLD}<input_dir>${END}\n\
-        Directory containing BAM files to process.\n\
-        It usually corresponds to 'Mapped/<model>/BAM'.\n\n\
+	${BOLD}<input_dir>${END}\n\
+		Directory containing BAM files to process.\n\
+		It usually corresponds to 'Mapped/<model>/BAM'.\n\n\
 
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh ${script_name} ${BOLD}-N${END} _sorted_unique_filtered ${BOLD}-F${END} bigwig ${BOLD}-M${END} RPKM ${BOLD}-R${END} true ${BOLD}Mapped/mm39/BAM${END}\n"
+	sh ${script_name} ${BOLD}-N${END} _sorted_unique_filtered ${BOLD}-F${END} bigwig ${BOLD}-M${END} RPKM ${BOLD}-R${END} true ${BOLD}Mapped/mm39/BAM${END}\n"
 }
 
 ################################################################################################################
@@ -59,56 +59,56 @@ R_arg="false"
 
 # Change default values if another one is precised
 while getopts ":N:F:M:R:" option; do
-    case $option in
-        N) # SUFFIX TO DISCRIMINATE FILES FOR INPUT
-            N_arg=${OPTARG};;
-        F) # FORMAT FOR OUTPUT FILE
-            F_arg=${OPTARG};;
-        M) # NORMALIZATION TO APPLY
-            M_arg=${OPTARG};;
-        R) # REMOVE SUFFIX IN OUTPUT FILENAME
-            R_arg=${OPTARG};;
-        \?) # Error
-            echo "Error : invalid option"
-            echo "      Allowed options are [-N|-F|-M|-R]"
-            echo "      Enter sh Bam2BW.sh help for more details"
-            exit;;
-        esac
+	case $option in
+		N) # SUFFIX TO DISCRIMINATE FILES FOR INPUT
+			N_arg=${OPTARG};;
+		F) # FORMAT FOR OUTPUT FILE
+			F_arg=${OPTARG};;
+		M) # NORMALIZATION TO APPLY
+			M_arg=${OPTARG};;
+		R) # REMOVE SUFFIX IN OUTPUT FILENAME
+			R_arg=${OPTARG};;
+		\?) # Error
+			echo "Error : invalid option"
+			echo "      Allowed options are [-N|-F|-M|-R]"
+			echo "      Enter sh Bam2BW.sh help for more details"
+			exit;;
+	esac
 done
 
 # Checking if provided option values are correct
 case $F_arg in
-    bedgraph|BedGraph|BG|bg) 
-        F_arg="bedgraph"
-        file_ext="bedgraph"
-        out_dir="BEDGRAPH";;
-    bigwig|BigWig|BW|bw)
-        F_arg="bigwig"
-        file_ext="bw"
-        out_dir="BIGWIG";;
-    *) 
-        echo "Error value : -F argument must be 'bigwig' or 'bedgraph'"
-        exit;;
+	bedgraph|BedGraph|BG|bg) 
+		F_arg="bedgraph"
+		file_ext="bedgraph"
+		out_dir="BEDGRAPH";;
+	bigwig|BigWig|BW|bw)
+		F_arg="bigwig"
+		file_ext="bw"
+		out_dir="BIGWIG";;
+	*) 
+		echo "Error value : -F argument must be 'bigwig' or 'bedgraph'"
+		exit;;
 esac
 case $M_arg in
-    RPKM|CPM|BPM|RPGC) 
-        M_arg=${M_arg}
-        NormName="_${M_arg}";;
-    None)
-        M_arg=${M_arg}
-        NormName='';;
-    *) 
-        echo "Error value : -M argument must be in 'RPKM', 'CPM', 'BPM', 'RPGC' or 'None'"
-        exit;;
+	RPKM|CPM|BPM|RPGC) 
+		M_arg=${M_arg}
+		NormName="_${M_arg}";;
+	None)
+		M_arg=${M_arg}
+		NormName='';;
+	*) 
+		echo "Error value : -M argument must be in 'RPKM', 'CPM', 'BPM', 'RPGC' or 'None'"
+		exit;;
 esac
 case $R_arg in
-    true|TRUE|True|T) 
-        R_arg='true';;
-    false|FALSE|False|F)
-        R_arg='false';;
-    *) 
-        echo "Error value : -R argument must be 'true' or 'false'"
-        exit;;
+	true|TRUE|True|T) 
+		R_arg='true';;
+	false|FALSE|False|F)
+		R_arg='false';;
+	*) 
+		echo "Error value : -R argument must be 'true' or 'false'"
+		exit;;
 esac
 
 # Deal with options [-N|-F|-M|-R] and arguments [$1|$2|...]
@@ -119,13 +119,13 @@ shift $((OPTIND-1))
 ################################################################################################################
 
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
-    Help
-    exit
+	Help
+	exit
 elif [ $# -ne 1 ]; then
-    # Error if no input directory is provided
-    echo "Error synthax : please use following synthax"
-    echo "      sh ${script_name} [options] <input_dir>"
-    exit
+	# Error if no input directory is provided
+	echo "Error synthax : please use following synthax"
+	echo "      sh ${script_name} [options] <input_dir>"
+	exit
 elif [ $(ls $1/*${N_arg}*.bam 2>/dev/null | wc -l) -lt 1 ]; then
 	# Error if provided directory is empty or does not exists
 	echo 'Error : can not find files to align in provided directory. Please make sure the provided input directory exists, and contains matching .bam files.'
@@ -135,7 +135,6 @@ fi
 ################################################################################################################
 ### SCRIPT -----------------------------------------------------------------------------------------------------
 ################################################################################################################
-
 
 ## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module load deeptools/3.5.0
@@ -161,16 +160,16 @@ mkdir -p ${outdir}
 shopt -s nullglob
 for file in ${1}/*${N_arg}*.bam; do
 	# Set variables for jobname
-        current_file=`echo ${file} | sed -e "s@${input}\/@@g" | sed -e 's@\.bam@@g'`
-        if [ $R_arg == 'true' ]; then
-            # Remove suffix if R_arg is specified to 'true'
-            current_file=`echo ${current_file} | sed -e "s@${N_arg}@@g"`
-        fi
-        
-        # Define JOBNAME and COMMAND and launch job
-        JOBNAME="BAM2${F_arg}_${current_file}"
-        COMMAND="bamCoverage --normalizeUsing $M_arg --outFileFormat $F_arg \
-        -b ${file} -o ${outdir}'/'${current_file}${NormName}'.'${file_ext}"
-        Launch
+	current_file=`echo ${file} | sed -e "s@${input}\/@@g" | sed -e 's@\.bam@@g'`
+	if [ $R_arg == 'true' ]; then
+		# Remove suffix if R_arg is specified to 'true'
+		current_file=`echo ${current_file} | sed -e "s@${N_arg}@@g"`
+	fi
+
+	# Define JOBNAME and COMMAND and launch job
+	JOBNAME="BAM2${F_arg}_${current_file}"
+	COMMAND="bamCoverage --normalizeUsing $M_arg --outFileFormat $F_arg \
+	-b ${file} -o ${outdir}'/'${current_file}${NormName}'.'${file_ext}"
+	Launch
 done
 
