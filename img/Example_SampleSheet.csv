@@ -1,0 +1,9 @@
+SRR00000001,LT+ 2D rep1,Condition_2D
+SRR00000002,LT+ 2D rep2,Condition_2D
+SRR00000003,LT+ 2D rep3,Condition_2D
+SRR00000004,LT+ 10D rep1,Condition_10D
+SRR00000005,LT+ 10D rep2,Condition_10D
+SRR00000006,LT+ 10D rep3,Condition_10D
+SRR00000007,LT- 2D rep1,Condition_neg
+SRR00000008,LT- 2D rep2,Condition_neg
+SRR00000009,LT- 2D rep3,Condition_neg
