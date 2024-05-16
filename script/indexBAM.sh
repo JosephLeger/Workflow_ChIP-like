@@ -49,7 +49,7 @@ N_arg=''
 S_arg='false'
 
 # Change default values if another one is precised
-while getopts ":M:N:R:" option; do
+while getopts ":N:S:" option; do
 	case $option in
 		N) # NAME OF FILE (SUFFIX)
 			N_arg=${OPTARG};;
@@ -183,8 +183,7 @@ WAIT=`echo ${JOBLIST} | sed -e 's@_,@-hold_jid @'`
 # Precise to eliminate empty lists for the loop
 shopt -s nullglob
 # Launch index on files or files_sorted
-for file in ${1}/*{N_arg}*${newsuffix}.bam; do
-	echo $file
+for file in ${1}/*${N_arg}*${newsuffix}.bam; do
 	# Set variables for jobname
 	current_file=`echo ${file} | sed -e "s@${1}\/@@g" | sed -e 's@\.bam@@g'`
 	# Define JOBNAME and COMMAND and launch with WAIT list
