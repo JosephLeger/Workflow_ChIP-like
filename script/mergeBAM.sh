@@ -21,17 +21,14 @@ ${BOLD}SYNTHAX${END}\n\
     sh ${script_name} [options] <input_dir> <sheet_sample.csv>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
-    Merge BAM files matching a pattern into a unique BAM file using samtools merge.\n\
-    Can be used for calling peaks on an accumulation of experiments to have higher signals.\n\
+    Merge BAM files matching a pattern into a unique BAM file and index it using samtools.\n\
+    Can be used before calling peaks on an accumulation of experiments to have higher signals.\n\
     It requires sample information in a provided .csv file (see example_sheet_sample.csv).\n\n\
 
 ${BOLD}OPTIONS${END}\n\
     ${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
-        Define a suffix that input files must share to be considered. Allows to exclude BAM files that are unfiltered or unwanted.\n\
-        Default = '_sorted_unique_filtered'\n\n\
-    ${BOLD}-M${END} ${UDL}mark${END}, ${BOLD}M${END}ark\n\
-        Define epigenetic mark present in <sheet_sample.csv> to consider for merging.\n\
-        Default = <current_dirname>\n\n\
+        Define a suffix that input files must share to be considered. Allows to exclude BAM files that are unwanted.\n\
+        Default = '_filtered'\n\n\
     ${BOLD}-R${END} ${UDL}boolean${END}, ${BOLD}R${END}emoveSuffix\n\
         Specify whether provided suffix from input filename have to be removed in output filename.\n\
         Default = false\n\n\
@@ -41,10 +38,10 @@ ${BOLD}ARGUMENTS${END}\n\
         Directory containing .bam files to process.\n\
         It usually corresponds to 'Mapped/<model>/BAM'.\n\n\
     ${BOLD}<sheet_sample.csv>${END}\n\
-        Path to .csv files containing sample information stored in 4 columns : 1)Sample_ID 2)Filename[not used] 3)Condition1 4)Condition2.\n\n\
+        Path to .csv files containing sample information stored in 3 columns : 1)Sample_ID 2)Filename[not used] 3)Condition\n\n\
 
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh ${script_name} ${BOLD}-N${END} _sorted_unique_filtered ${BOLD}-M${END} H3K4me3 ${BOLD}-R${END} true ${BOLD}Mapped/mm39/BAM ../SRA_ChIC-seq.csv${END}\n"
+    sh ${script_name} ${BOLD}-N${END} _sorted_filtered ${BOLD}-R${END} true ${BOLD}Mapped/mm39/BAM ../SRA_SampleLists.csv${END}\n"
 }
 
 ################################################################################################################
@@ -52,7 +49,7 @@ ${BOLD}EXAMPLE USAGE${END}\n\
 ################################################################################################################
 
 # Set default values
-N_arg='_sorted_unique_filtered'
+N_arg='_filtered'
 M_arg=`pwd | sed -e 's@.*\/@@g'`
 R_arg='false'
 
@@ -78,7 +75,7 @@ case $R_arg in
     true|TRUE|True|T) 
         newsuffix='_merged.bam';;
     false|FALSE|False|F)
-        newsuffix=${S_arg}'_merged.bam';;
+        newsuffix=${N_arg}'_merged.bam';;
     *) 
         echo "Error value : -R argument must be 'true' or 'false'"
         exit;;
@@ -93,19 +90,15 @@ shift $((OPTIND-1))
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
     Help
     exit
-elif [ $# != 2 ]; then
+elif [ $# -ne 2 ]; then
     # Error if arguments are missing
     echo "Error synthax : please use following synthax"
     echo "      sh ${script_name} <input_dir> <data_sheet.csv>"
     exit
-else
-    # Count .bam files matching -N pattern in provided directory
-    files=$(shopt -s nullglob dotglob; echo ${1}/*${N_arg}*.bam)
-    if (( !${#files} )); then
-        # Error if current provided directory is empty or does not exists
-        echo -e "Error : can not find files to sort in ${input} directory. Please make sure the provided input directory exists, and contains correct .bam files."
-        exit
-    fi
+elif [ $(ls $1/*${N_arg}*.bam 2>/dev/null | wc -l) -lt 1 ]; then
+	# Error if provided directory is empty or does not exists
+	echo "Error : can not find files to merge in ${input} directory. Please make sure the provided input directory exists, and contains correct .bam files."
+	exit
 fi
 
 ################################################################################################################
@@ -127,36 +120,36 @@ echo -e ${COMMAND} | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
 
-# Establish conditions_list which contains already visited condition2 (celltype)
+# Establish conditions_list which contains already visited condition
 conditions_list=""
-while IFS=',' read -r sra filename cond1 cond2; do
-    # Read the entire sheet cond2 columns
-    cond2=$(echo $cond2 | tr -d '\r')
-    # Check if current $cond2 is already written in $conditions_list
-    is_present=`echo $conditions_list | grep -ce $cond2`
+while IFS=',' read -r id filename condition; do
+    # Read the entire sheet condition columns
+    condition=$(echo $condition | tr -d '\r')
+    # Check if current $condition is already written in $conditions_list
+    is_present=`echo $conditions_list | grep -ce $condition`
 
-    # If $cond2 is not written yet in $conditions_list
+    # If $condition is not written yet in $conditions_list
     if [ $is_present -eq 0 ]; then
         # Add it to the list to not visiting it again
-        conditions_list="${conditions_list} ${cond2}"
+        conditions_list="${conditions_list} ${condition}"
 
-        # Initialize $sra_file list to store filenames to merge
-        sra_files=""
-        # Look for $sra in the entire sheet that share current $cond2 and $M_arg
-        while IFS=',' read -r sra filename cond1 cond22; do
-            sra=$(echo $sra | tr -d '\r')
-            cond22=$(echo $cond22 | tr -d '\r')
-            if [ "$cond22" == "$cond2" ] && [[ "$cond1" == "$M_arg" ]]; then
-                # Search for $files correspoinding to current matching $sra
-                newfile=`find ${1} -type f -iname "*${sra}*${N_arg}*.bam"`
-                sra_files="${sra_files} ${newfile}"
+        # Initialize $list_files to store filenames to merge
+        list_files=""
+        # Look for $id in the entire sheet that share current $condition
+        while IFS=',' read -r id_sub filename_sub condition_sub; do
+            id=$(echo $id | tr -d '\r')
+            condition_sub=$(echo $condition_sub | tr -d '\r')
+            if [ "$condition_sub" == "$condition" ]; then
+                # Search for $files correspoinding to current matching $id
+                newfile=`find ${1} -type f -iname "*${id}*${N_arg}*.bam"`
+                list_files="${list_files} ${newfile}"
             fi
         done < ${2}
 
-        ## Define JOB and COMMAND and launch job
-        JOBNAME="mergeBAM_${M_arg}_${cond2}"
-        COMMAND="samtools merge -o ${1}/${M_arg}_${cond2}${newsuffix} ${sra_files} \n\
-        samtools index ${1}/${M_arg}_${cond2}${newsuffix}"
+        # Define JOBNAME and COMMAND and launch job
+        JOBNAME="mergeBAM_${condition}"
+        COMMAND="samtools merge -o ${1}/${condition}${newsuffix} ${list_files} \n\
+        samtools index ${1}/${condition}${newsuffix}"
         Launch        
     fi
 done < ${2}
