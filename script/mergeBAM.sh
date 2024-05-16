@@ -39,9 +39,9 @@ ${BOLD}ARGUMENTS${END}\n\
 		It usually corresponds to 'Mapped/<model>/BAM'.\n\n\
 	${BOLD}<sheet_sample.csv>${END}\n\
 		Path to .csv files containing sample information stored in 3 columns : 
-  			1)File_ID (unique patterns to identify files)
-     			2)Info (sample description, not used by the script)
-			3)Group (files sharing the same Group will be merged together)\n\n\
+  			1) File_ID (unique patterns to identify files)
+     			2) Info (sample description, not used by the script)
+			3) Condition (files sharing the same Condition will be merged together)\n\n\
    		
 ${BOLD}EXAMPLE USAGE${END}\n\
 	sh ${script_name} ${BOLD}-N${END} _sorted_filtered ${BOLD}-R${END} true ${BOLD}Mapped/mm39/BAM ../SRA_SampleLists.csv${END}\n"
@@ -125,7 +125,7 @@ WAIT=''
 
 # Establish conditions_list which contains already visited condition
 conditions_list=""
-sed 1d ${2} | while IFS=',' read -r id filename condition; do
+sed 1d ${2} | while IFS=',' read -r id info condition; do
 	# Read the entire sheet condition columns
 	condition=$(echo $condition | tr -d '\r')
 	# Check if current $condition is already written in $conditions_list
@@ -139,7 +139,7 @@ sed 1d ${2} | while IFS=',' read -r id filename condition; do
 		# Initialize $list_files to store filenames to merge
 		list_files=""
 		# Look for $id in the entire sheet that share current $condition
-		sed 1d ${2} | while IFS=',' read -r id_sub filename_sub condition_sub; do
+		sed 1d ${2} | while IFS=',' read -r id_sub info_sub condition_sub; do
 			id=$(echo $id | tr -d '\r')
 			condition_sub=$(echo $condition_sub | tr -d '\r')
 			if [ "$condition_sub" == "$condition" ]; then
