@@ -26,7 +26,7 @@ ${BOLD}DESCRIPTION${END}\n\
 ${BOLD}OPTIONS${END}\n\
 	${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
 		Define a suffix that input files must share to be considered. Allows to exclude unwanted peak files.\n\
-		Default = '_peaks'\n\n\
+		Default = ''\n\n\
 	${BOLD}-R${END} ${UDL}size${END}, ${BOLD}R${END}egionSize\n\
 		Define considered region size.\n\
 		Default = 200 \n\n\
@@ -66,7 +66,7 @@ ${BOLD}EXAMPLE USAGE${END}\n\
 ################################################################################################################
 
 # Set default values
-N_arg="_peaks"
+N_arg=''
 R_arg=200
 L_arg='8,10,12'
 S_arg=40
