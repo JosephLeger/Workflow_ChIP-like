@@ -18,7 +18,7 @@ Help()
 {
 echo -e "${BOLD}####### PEAKYFINDER MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-    sh ${script_name} [options] <chrom_size> <input_dir1> <...>\n\n\
+    sh ${script_name} [options] <input_dir> <chrom_size>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
     Perform peak calling from BAM files using HOMER or MACS2.\n\
@@ -70,7 +70,7 @@ ${BOLD}HOMER Options${END}\n\
     
 ${BOLD}MACS2 Options${END}\n\n\
     ${BOLD}-G${END} ${UDL}size${END}, ${BOLD}G${END}enomSize\n\
-        Effective genome size. Default human = 2.7e9, default mouse : 1.87e9.\n\
+        Effective genome size. Default human = 2.7e9 ; Default mouse : 1.87e9.\n\
         Default = 1.87e9\n\n\
     ${BOLD}-H${END} ${UDL}integer${END}, S${BOLD}h${END}ift\n\
         Value used to move cutting ends before applying ExtendSize parameter.\n\
@@ -82,6 +82,9 @@ ${BOLD}MACS2 Options${END}\n\n\
     For more details, please see MACS2 manual \n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
+    ${BOLD}<input_dir>${END}\n\
+        Directory containing BAM files to process.\n\
+        It usually corresponds to 'Mapped/<model>/BAM'.\n\n\
     ${BOLD}<chrom_size>${END}\n\
         Pathway to chromosome size file.\n\
         Could be downloaded on UCSC website (e.g. https://hgdownload.soe.ucsc.edu/goldenPath/mm39/bigZips/, 'mm39.chrom.sizes').\n\
@@ -90,14 +93,9 @@ ${BOLD}ARGUMENTS${END}\n\
             2) Remove everything before and after '_' for non-usual chromosomes names.\n\
             3) Replace 'v1' by '.1' in non-usual chromosme names.\n\
             4) Make sure entries are Tab separated.\n\n\
-    ${BOLD}<input_dir>${END}\n\
-        Directory containing .bam files to process.\n\
-        It usually corresponds to 'Mapped/<model>/BAM'.\n\n\
-    ${BOLD}<...>${END}\n\
-        Several directories can be specified as argument in the same command line, allowing processing of multiple models simultaneously.\n\n\  
-
+    
 ${BOLD}EXAMPLE USAGE${END}\n\
-    sh ${script_name} -U 'HOMER' ${BOLD}-N${END} _unique_filtered ${BOLD}-S${END} 50 ${BOLD}-M${END} dnase ${BOLD}-I${END} none ${BOLD}-F${END} none ${BOLD}-L${END} 4 ${BOLD}-C${END} 2 ${BOLD}${usr}/Ref/Genome/mm39.chrom.sizes Mapped/mm39/BAM${END}\n"
+    sh ${script_name} -U 'HOMER' ${BOLD}-N${END} _unique_filtered ${BOLD}-S${END} 50 ${BOLD}-M${END} dnase ${BOLD}-I${END} none ${BOLD}-F${END} none ${BOLD}-L${END} 4 ${BOLD}-C${END} 2 ${BOLD}$Mapped/mm39/BAM ${usr}/Ref/Genome/mm39.chrom.sizes${END}\n"
 }
 
 ################################################################################################################
@@ -175,7 +173,7 @@ case $U_arg in
         exit;;
 esac
 
-# Deal with options [-N|-U|-S|-M|-I|-F|-L|-C|-T] and arguments [$1|$2|...]
+# Deal with options [-N|-U|-S|-M|-I|-F|-L|-C|-T|-G|-H|-E] and arguments [$1|$2]
 shift $((OPTIND-1))
 
 ################################################################################################################
@@ -185,22 +183,15 @@ shift $((OPTIND-1))
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
     Help
     exit
-elif [ $# -lt 2 ]; then
+elif [ $# -ne 2 ]; then
     # Error if inoccrect number of agruments is provided
     echo "Error synthax : please use following synthax"
-    echo "      sh ${script_name} [options] <chr_size_file> <input_dir1> <...>"
+    echo "      sh ${script_name} [options] <input_dir> <chr_size_file>"
     exit
-else
-    # For each input file given as argument
-    for input in "${@:2}"; do
-        # Count .bam files in each provided directory
-        files=$(shopt -s nullglob dotglob; echo ${input}/*${N_arg}*.bam)
-        if (( !${#files} )); then
-            # Error if current provided directory is empty or does not exists
-            echo -e "Error : can not find files in ${input} directory. Please make sure the provided input directory exists, and contains .bam files"
-            exit
-        fi
-    done
+elif [ $(ls $1/*${N_arg}*.bam 2>/dev/null | wc -l) -lt 1 ]; then
+	# Error if provided directory is empty or does not exists
+	echo 'Error : can not find files to align in provided directory. Please make sure the provided input directory exists, and contains matching .bam files.'
+	exit
 fi
 
 ################################################################################################################
@@ -227,60 +218,53 @@ WAIT=''
 
 ## HOMER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ ${U_arg} == 'HOMER' ]; then
-    module load homer/4.11
-    # Create Tags output directories
-    mkdir -p HOMER/Tags
-    # Initialize SampleSheet
-    echo "ID,Tissue,Factor,Condition,Treatment,Replicate,bamReads,Peaks,PeakCaller" > HOMER/SampleSheet_HOMER.csv
+	module load homer/4.11
+	# Create Tags output directories
+	mkdir -p HOMER/Tags
+	# Initialize SampleSheet
+	echo "ID,Tissue,Factor,Condition,Treatment,Replicate,bamReads,Peaks,PeakCaller" > HOMER/SampleSheet_HOMER.csv
+	# For each matching BAM file in $input directory
+	for file in ${1}/*${N_arg}*.bam; do
+		# Genrate tag_name by removing pathway, suffix and .bam of read files
+		current_tag=`echo ${file} | sed -e "s@${1}\/@@g" | sed -e 's@\.bam@@g'`
+		# Create Peaks output directories
+		outdir=HOMER/Peaks/${current_tag}
+		mkdir -p ${outdir}
+	    
+		# Set variables for the run :
+		peaks_txt=${outdir}/${current_tag}_peaks.txt
+		peaks_bed=${outdir}/${current_tag}_peaks.bed
+		bedgraph=${outdir}/${current_tag}_peaks.bedgraph
+		bigwig=${outdir}/${current_tag}_peaks.bw
+	    
+		# Define JOBNAME and COMMAND and launch job
+		JOBNAME="HOMER_${current_tag}"
+		COMMAND="makeTagDirectory HOMER/Tags/${current_tag} ${file} -fragLength ${S_arg} -single \n\
+		findPeaks HOMER/Tags/${current_tag} -style ${M_arg} \
+		-o ${peaks_txt} -L ${L_arg} -C ${C_arg} \
+		-tagThreshold ${T_arg} ${I_arg}${F_arg}\n\
+		grep -v '^#' ${peaks_txt} | awk -v OFS='\t' '{print \$2,\$3,\$4,\$1,\$8,\$5}' | bedtools sort > ${peaks_bed} \n\
+		genomeCoverageBed -bga -i ${peaks_bed} -g ${2} | bedtools sort > ${bedgraph} \n\
+		bedGraphToBigWig ${bedgraph} ${1} ${bigwig}"
+		Launch
+		# Append SampleSheet
+		echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> HOMER/SampleSheet_HOMER.csv
+	done
 
-    for input in "${@:2}"; do
-        # Precise to eliminate empty lists for the loop
-        shopt -s nullglob
-        # For each matching BAM file in $input directory
-        for i in ${input}/*${N_arg}*.bam; do
-            # Genrate tag_name by removing pathway, suffix and .bam of read files
-            current_tag=`echo $i | sed -e "s@$input\/@@g" | sed -e 's@\.bam@@g'`
-            # Create Peaks output directories
-            outdir=HOMER/Peaks/${current_tag}
-            mkdir -p ${outdir}
-	    
-            # Set variables for the run :
-            peaks_txt=${outdir}/${current_tag}_peaks.txt
-            peaks_bed=${outdir}/${current_tag}_peaks.bed
-            bedgraph=${outdir}/${current_tag}_peaks.bedgraph
-            bigwig=${outdir}/${current_tag}_peaks.bw
-	    
-            # Define JOBNAME and COMMAND and launch job
-            JOBNAME="HOMER_${current_tag}"
-            COMMAND="makeTagDirectory HOMER/Tags/${current_tag} $i -fragLength ${S_arg} -single \n\
-            findPeaks HOMER/Tags/${current_tag} -style ${M_arg} \
-            -o ${peaks_txt} -L ${L_arg} -C ${C_arg} \
-            -tagThreshold ${T_arg} ${I_arg}${F_arg}\n\
-            grep -v '^#' ${peaks_txt} | awk -v OFS='\t' '{print \$2,\$3,\$4,\$1,\$8,\$5}' | bedtools sort > ${peaks_bed} \n\
-            genomeCoverageBed -bga -i ${peaks_bed} -g ${1} | bedtools sort > ${bedgraph} \n\
-            bedGraphToBigWig ${bedgraph} ${1} ${bigwig}"
-            Launch
-	        # Append SampleSheet
-	        echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> HOMER/SampleSheet_HOMER.csv
-        done
-    done
 
 ## MACS2 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 elif [ ${U_arg} == 'MACS2' ]; then
-    module load gcc
-    module load macs2
-    # Create Tags output directories
-    mkdir -p MACS2/Peaks
-    # Initialize SampleSheet
-    echo "ID,Tissue,Factor,Condition,Treatment,Replicate,bamReads,Peaks,PeakCaller" > MACS2/SampleSheet_MACS2.csv
-    
-    for input in "${@:2}"; do
-	# Precise to eliminate empty lists for the loop
-        shopt -s nullglob
+	module load gcc
+	module load macs2
+	# Create Tags output directories
+	mkdir -p MACS2/Peaks
+	# Initialize SampleSheet
+	echo "ID,Tissue,Factor,Condition,Treatment,Replicate,bamReads,Peaks,PeakCaller" > MACS2/SampleSheet_MACS2.csv
+
 	# For each matching BAM file in $input directory
-        for file in ${input}/*${N_arg}*.bam; do    
+        for file in ${1}/*${N_arg}*.bam; do    
             # Define current tag
-            current_tag=`echo ${file} | sed -e "s@${input}/@@g" | sed -e "s@${N_arg}@@g" | sed -e 's@\.bam@@g'`
+            current_tag=`echo ${file} | sed -e "s@${1}/@@g" | sed -e "s@${N_arg}@@g" | sed -e 's@\.bam@@g'`
             # Create output dir
             outdir=MACS2/Peaks/${current_tag}
             mkdir -p ${outdir}
@@ -296,11 +280,11 @@ elif [ ${U_arg} == 'MACS2' ]; then
             COMMAND="macs2 callpeak -t ${file} -f BAM -g ${G_arg} \
             --nomodel --shift ${H_arg} --extsize ${E_arg} \
             -n ${current_tag} --outdir ${outdir} \n\
-            genomeCoverageBed -bga -i ${summits_bed} -g ${1} | bedtools sort > ${bedgraph} \n\
+            genomeCoverageBed -bga -i ${summits_bed} -g ${2} | bedtools sort > ${bedgraph} \n\
             bedGraphToBigWig ${bedgraph} ${1} ${bigwig}"
             Launch
             # Append SampleSheet
 	        echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> MACS2/SampleSheet_MACS2.csv
         done
-    done
+
 fi
