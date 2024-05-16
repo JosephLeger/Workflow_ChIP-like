@@ -105,6 +105,8 @@ fi
 ### SCRIPT -----------------------------------------------------------------------------------------------------
 ################################################################################################################
 
+
+## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 module load samtools/1.15.1
 
 # Generate REPORT
@@ -120,6 +122,7 @@ echo -e ${COMMAND} | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
 
+## MERGE BAM - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Establish conditions_list which contains already visited condition
 conditions_list=""
 sed 1d ${2} | while IFS=',' read -r id info condition; do
