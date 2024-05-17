@@ -22,7 +22,7 @@ Trimming script includes the optional use of **Clumpify** (bbmap) to remove dupl
 
 4. **Filtering and Indexing BAM :** If it hasn't already been done duplicated reads are removed, and reads with low alignment scores are filtered out using **Picard** and **SamTools**. Resulting BAM files are then indexed for following steps.  
 
-5. **Peak Calling :** To identify notable regions, aligned reads are then convert to peaks regions. This workflow provides two different widely used peak caller, **MACS2** and **HOMER**. Both will generate specific peak files, that are then converted into BED, BEDGRAPH and BIGWIG formats for following steps or visualization.  
+5. **Peak Calling :** To identify notable regions, aligned reads are then converted to peaks. This workflow provides two different widely used peak callers, **MACS2** and **HOMER**. Both will generate specific peak files, that are then converted into BED, BEDGRAPH and BIGWIG formats for following steps or visualization.  
 
 6. **Peak Annotation :** Previously called peaks are associated with the gene corresponding to their genomic region using **HOMER**. In parallel, motif enrichment analysis can be launched, in order to identify known or *de novo* transcription factor specific motifs.  
 
@@ -36,9 +36,11 @@ All required scripts are available in the script folder in this directory.
 To get more information about using these scripts, enter the command ```sh <script.sh> help```.  
   
 ### Environments
-The workflow is encoded in Shell language and is supposed to be launched under a Linux environment.
-Moreover, it was written to be used on a computing cluster with tools already pre-installed in the form of modules. Modules are so loaded using ```module load <tool_name>``` command. If you use manually installed environments, simply replace module loading in script section by the environment activation command.   
-All script files launch tasks as qsub task submission. To successfully complete the workflow, wait for all the jobs in a step to be completed before launching the next one.
+The workflow is encoded in Shell language and is supposed to be launched under a Linux environment.  
+Moreover, it was written to be used on a computing cluster with tools already pre-installed in the form of modules. Modules are so loaded using `module load <tool_name>` command. If you use manually installed environments, simply replace module loading in script section by the environment activation command.  
+All script files launch tasks as **qsub** task submission. To successfully complete the workflow, wait for all the jobs in a step to be completed before launching the next one.  
+
+### Requirments
   
 ### Requirements
 ```
