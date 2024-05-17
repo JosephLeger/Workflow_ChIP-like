@@ -95,7 +95,7 @@ ${BOLD}ARGUMENTS${END}\n\
 			4) Make sure entries are Tab separated.\n\n\
     
 ${BOLD}EXAMPLE USAGE${END}\n\
-	sh ${script_name} -U 'HOMER' ${BOLD}-N${END} _unique_filtered ${BOLD}-S${END} 50 ${BOLD}-M${END} dnase ${BOLD}-I${END} none ${BOLD}-F${END} none ${BOLD}-L${END} 4 ${BOLD}-C${END} 2 ${BOLD}$Mapped/mm39/BAM ${usr}/Ref/Genome/mm39.chrom.sizes${END}\n"
+	sh ${script_name} -U 'HOMER' ${BOLD}-N${END} _unique_filtered ${BOLD}-S${END} 50 ${BOLD}-M${END} dnase ${BOLD}-I${END} none ${BOLD}-F${END} none ${BOLD}-L${END} 4 ${BOLD}-C${END} 2 ${BOLD}Mapped/mm39/BAM ${usr}/Ref/Genome/mm39.chrom.sizes${END}\n"
 }
 
 ################################################################################################################
