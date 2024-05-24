@@ -37,7 +37,7 @@ ${BOLD}ARGUMENTS${END}\n\
 		Directory containing BAM files to index.\n\
    		
 ${BOLD}EXAMPLE USAGE${END}\n\
-	sh ${script_name} ${BOLD}-N${END} _sorted ${BOLD}-R${END} true ${BOLD}./BAM_directory${END}\n"
+	sh ${script_name} ${BOLD}-N${END} _sorted ${BOLD}-S${END} true ${BOLD}./BAM_directory${END}\n"
 }
 
 ################################################################################################################
