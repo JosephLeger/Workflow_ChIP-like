@@ -119,6 +119,7 @@ WAIT=''
 
 ## SORT BAM - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 if [ ${S_arg} == 'true' ]; then
+	module load picard/2.23.5
 	# Initialize JOBLIST to wait before running index
 	JOBLIST='_'
 	# Precise to eliminate empty lists for the loop
@@ -146,7 +147,9 @@ WAIT=`echo ${JOBLIST} | sed -e 's@_,@-hold_jid @'`
 # Precise to eliminate empty lists for the loop
 shopt -s nullglob
 # Launch index on files or files_sorted
-for file in ${1}/*${N_arg}*${newsuffix}.bam; do
+for file in ${1}/*${N_arg}.bam; do
+	# Add suffix
+ 	file=`echo ${file} | sed -e "s@\.bam@${newsuffix}\.bam@g"`
 	# Set variables for jobname
 	current_file=`echo ${file} | sed -e "s@${1}\/@@g" | sed -e 's@\.bam@@g'`
 	# Define JOBNAME and COMMAND and launch with WAIT list
