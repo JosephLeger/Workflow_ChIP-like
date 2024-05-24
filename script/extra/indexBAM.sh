@@ -124,7 +124,7 @@ if [ ${S_arg} == 'true' ]; then
 	# Precise to eliminate empty lists for the loop
 	shopt -s nullglob
 	# Sort each provided file
-	for file in ${1}/*{N_arg}*.bam; do
+	for file in ${1}/*${N_arg}*.bam; do
 		# Set variables for jobname
 		current_file=`echo ${file} | sed -e "s@${1}\/@@g" | sed -e 's@\.bam@@g'`
 		output=`echo ${file} | sed -e 's@\.bam@_sorted\.bam@g'`
