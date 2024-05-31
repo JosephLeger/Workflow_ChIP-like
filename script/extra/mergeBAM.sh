@@ -139,12 +139,12 @@ sed 1d ${2} | while IFS=',' read -r id info condition; do
 		# Initialize $list_files to store filenames to merge
 		list_files=""
 		# Look for $id in the entire sheet that share current $condition
-		sed 1d ${2} | while IFS=',' read -r id_sub info_sub condition_sub; do
+		sed 1d ${2} | (while IFS=',' read -r id_sub info_sub condition_sub; do
 			id=$(echo $id | tr -d '\r')
 			condition_sub=$(echo $condition_sub | tr -d '\r')
 			if [ "$condition_sub" == "$condition" ]; then
 				# Search for $files correspoinding to current matching $id
-				newfile=`find ${1} -type f -iname "*${id}*${N_arg}*.bam"`
+				newfile=`find ${1} -type f -iname "*${id_sub}*${N_arg}*.bam"`
 				list_files="${list_files} ${newfile}"
 			fi
 		done
@@ -152,6 +152,6 @@ sed 1d ${2} | while IFS=',' read -r id info condition; do
 		JOBNAME="mergeBAM_${condition}"
 		COMMAND="samtools merge -o ${1}/${condition}${newsuffix} ${list_files} \n\
 		samtools index ${1}/${condition}${newsuffix}"
-		Launch        
+		Launch)        
 	fi
 done
