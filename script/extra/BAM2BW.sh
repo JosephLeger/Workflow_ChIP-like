@@ -160,7 +160,7 @@ mkdir -p ${outdir}
 shopt -s nullglob
 for file in ${1}/*${N_arg}*.bam; do
 	# Set variables for jobname
-	current_file=`echo ${file} | sed -e "s@${input}\/@@g" | sed -e 's@\.bam@@g'`
+	current_file=`echo ${file} | sed -e "s@${1}\/@@g" | sed -e 's@\.bam@@g'`
 	if [ $R_arg == 'true' ]; then
 		# Remove suffix if R_arg is specified to 'true'
 		current_file=`echo ${current_file} | sed -e "s@${N_arg}@@g"`
