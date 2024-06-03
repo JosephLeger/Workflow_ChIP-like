@@ -141,7 +141,7 @@ for file in ${1}/*${N_arg}*.bam; do
 	# Define JOBNAME and COMMAND and launch job
 	if [ ${R_arg} == 'true' ]; then
 		JOBNAME="BowtieCheck_${model}_${current_file}"
-		COMMAND="picard MarkDuplicates INPUT=${i} \
+		COMMAND="picard MarkDuplicates INPUT=${file} \
 		OUTPUT=${1}/${current_file}_unique.bam \
 		VALIDATION_STRINGENCY=LENIENT \
 		TMP_DIR=/tmp \
