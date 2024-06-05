@@ -89,14 +89,15 @@ case $R_arg in
 esac
 case $A_arg in
 	None|none|false|FALSE|False|F|0) 
-		A_arg=0;;
+		A_arg='None';;
 	'')
 		echo "Error value : provided -A argument is empty"
 		exit;;
 	*) 
-		A_arg=`echo ${A_arg} | sed -e 's@\.bam|\.BAM|\.Bam@@'`
+		A_arg=`echo ${A_arg} | sed -e 's@\.bam|\.BAM|\.Bam@@'`;;
+
 esac
-# Deal with options [-N|-R] and arguments [$1|$2|...]
+# Deal with options [-N|-R|-A] and arguments [$1|$2|...]
 shift $((OPTIND-1))
 
 ################################################################################################################
@@ -106,13 +107,13 @@ shift $((OPTIND-1))
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
 	Help
 	exit
-elif [ ${A_arg} -ne 0 ] && [ $# -lt 1 ]; then
+elif [ ${A_arg} != 'None' ] && [ $# -lt 1 ]; then
 	# Error if -A is specified and argument are missing
 	echo "Error synthax : Missing argument"
  	echo "Using -A option please use following synthax"
 	echo "      sh ${script_name} [options] -A <output_filename> <input_dir>"
 	exit
-elif [ ${A_arg} -eq 0 ] && [ $# -ne 2 ]; then
+elif [ ${A_arg} == 'None' ] && [ $# -ne 2 ]; then
 	# Error if arguments are missing
 	echo "Error synthax : please use following synthax"
 	echo "      sh ${script_name} [options] <input_dir> <data_sheet.csv>"
@@ -145,7 +146,7 @@ echo -e ${COMMAND} | sed 's@^@   \| @' >> ./0K_REPORT.txt
 WAIT=''
 
 ## MERGE SEPARATED BAM - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ ${A_arg} == 0 ]; then
+if [ ${A_arg} == 'None' ]; then
 	# Establish conditions_list which contains already visited condition
 	conditions_list=""
 	sed 1d ${2} | while IFS=',' read -r id info condition; do
