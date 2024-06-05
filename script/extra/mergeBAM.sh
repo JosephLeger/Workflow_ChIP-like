@@ -88,8 +88,8 @@ case $R_arg in
 		exit;;
 esac
 case $A_arg in
-	None|none|false|FALSE|False|F) 
-		A_arg='None';;
+	None|none|false|FALSE|False|F|0) 
+		A_arg=0;;
 	'')
 		echo "Error value : provided -A argument is empty"
 		exit;;
@@ -106,10 +106,16 @@ shift $((OPTIND-1))
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
 	Help
 	exit
-elif [ $# -ne 2 ]; then
+elif [ ${A_arg} -ne 0 ] && [ $# -lt 1 ]; then
+	# Error if -A is specified and argument are missing
+	echo "Error synthax : Missing argument"
+ 	echo "Using -A option please use following synthax"
+	echo "      sh ${script_name} [options] -A <output_filename> <input_dir>"
+	exit
+elif [ ${A_arg} -eq 0 ] && [ $# -ne 2 ]; then
 	# Error if arguments are missing
 	echo "Error synthax : please use following synthax"
-	echo "      sh ${script_name} <input_dir> <data_sheet.csv>"
+	echo "      sh ${script_name} [options] <input_dir> <data_sheet.csv>"
 	exit
 elif [ $(ls $1/*${N_arg}*.bam 2>/dev/null | wc -l) -lt 1 ]; then
 	# Error if provided directory is empty or does not exists
@@ -139,7 +145,7 @@ echo -e ${COMMAND} | sed 's@^@   \| @' >> ./0K_REPORT.txt
 WAIT=''
 
 ## MERGE SEPARATED BAM - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ ${A_arg} == 'None' ]; then
+if [ ${A_arg} == 0 ]; then
 	# Establish conditions_list which contains already visited condition
 	conditions_list=""
 	sed 1d ${2} | while IFS=',' read -r id info condition; do
@@ -176,6 +182,10 @@ else
 ## MERGE UNIQUE BAM - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 	# Initialize $list_files to store filenames to merge
 	list_files=`ls ${1}/*${N_arg}*.bam`
-	echo $list_files
+	# Define JOBNAME and COMMAND and launch job
+	JOBNAME="mergeBAM_${A_arg}"
+	COMMAND="samtools merge -o ${1}/${A_arg}.bam ${list_files} \n\
+	samtools index ${1}/${A_arg}.bam"
+	Launch
  fi
 
