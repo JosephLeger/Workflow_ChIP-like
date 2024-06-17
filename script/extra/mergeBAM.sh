@@ -43,7 +43,7 @@ ${BOLD}ARGUMENTS${END}\n\
 		It usually corresponds to 'Mapped/<model>/BAM'.\n\n\
 	${BOLD}<sheet_sample.csv>${END}\n\
 		Path to .csv files containing sample information stored in 3 columns : 
-  			1) File_ID [not used by this script] (unique patterns to identify raw files) 
+  			1) File_ID [not used by this script]
      			2) Filename (unique patterns to identify used files) 
 			3) Condition (files sharing the same Condition will be merged together)\n\n\
    		
