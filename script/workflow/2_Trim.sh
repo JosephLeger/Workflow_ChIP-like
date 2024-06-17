@@ -276,5 +276,5 @@ elif [ $U_arg == "Trimmomatic" ]; then
 	TRIMMOMATIC_launch $1 $2
 elif [ $U_arg == "Both" ]; then
 	CLUMPIFY_launch $1 $2
-	TRIMMOMATIC_launch $1 $2
+	TRIMMOMATIC_launch $1 'Trimmed/Clumpify'
 fi
