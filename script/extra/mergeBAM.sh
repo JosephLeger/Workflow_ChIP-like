@@ -43,8 +43,8 @@ ${BOLD}ARGUMENTS${END}\n\
 		It usually corresponds to 'Mapped/<model>/BAM'.\n\n\
 	${BOLD}<sheet_sample.csv>${END}\n\
 		Path to .csv files containing sample information stored in 3 columns : 
-  			1) File_ID (unique patterns to identify raw files)
-     			2) Info (sample description or alternate filename to rename files) [not used by the script]
+  			1) File_ID [not used by this script] (unique patterns to identify raw files) 
+     			2) Filename (unique patterns to identify used files) 
 			3) Condition (files sharing the same Condition will be merged together)\n\n\
    		
 ${BOLD}EXAMPLE USAGE${END}\n\
@@ -149,7 +149,7 @@ WAIT=''
 if [ ${A_arg} == 'None' ]; then
 	# Establish conditions_list which contains already visited condition
 	conditions_list=""
-	sed 1d ${2} | while IFS=',' read -r id info condition; do
+	sed 1d ${2} | while IFS=',' read -r id filename condition; do
 		# Read the entire sheet condition columns
 		condition=$(echo $condition | tr -d '\r')
 		# Check if current $condition is already written in $conditions_list
@@ -162,13 +162,13 @@ if [ ${A_arg} == 'None' ]; then
 			
 			# Initialize $list_files to store filenames to merge
 			list_files=""
-			# Look for $id in the entire sheet that share current $condition
-			sed 1d ${2} | (while IFS=',' read -r id_sub info_sub condition_sub; do
-				id=$(echo $id | tr -d '\r')
+			# Look for $filename in the entire sheet that share current $condition
+			sed 1d ${2} | (while IFS=',' read -r id_sub filename_sub condition_sub; do
+				filename=$(echo $filename | tr -d '\r')
 				condition_sub=$(echo $condition_sub | tr -d '\r')
 				if [ "$condition_sub" == "$condition" ]; then
-					# Search for $files correspoinding to current matching $id
-					newfile=`find ${1} -type f -iname "*${id_sub}*${N_arg}*.bam"`
+					# Search for $files correspoinding to current matching $filename
+					newfile=`find ${1} -type f -iname "*${filename_sub}*${N_arg}*.bam"`
 					list_files="${list_files} ${newfile}"
 				fi
 			done
