@@ -107,11 +107,15 @@ done
 # Checking if provided option values are correct
 case $U_arg in
 	TRIMMOMATIC|Trimmomatic|trimmomatic) 
-		U_arg="Trimmomatic";;
+		U_arg="Trimmomatic"
+		indir_2=${2}
+		suffix='';;
 	CLUMPIFY|Clumpify|clumpify) 
 		U_arg="Clumpify";;
 	BOTH|Both|both)
-		U_arg="Both";;
+		U_arg="Both"
+		indir_2='Trimmed/Clumpify'
+		suffix='_Clum';;
 	*) 
 		echo "Error value : -U argument must be 'Trimmomatic', 'Clumpify' or 'Both'"
 		exit;;
@@ -231,8 +235,8 @@ if [ ${1} == "SE" ]; then
 		JOBNAME="Trim_${1}_${current_file}"
 		COMMAND="conda activate base \n\
 		conda activate Trimmomatic \n\
-		trimmomatic ${1} -threads 4 $i \
-		${outdir}/${current_file}"_Trimmed.fastq.gz" ${I_arg}\
+		trimmomatic ${1} -threads 4 ${indir_2}/${current_file}${suffix}.fastq.gz \
+		${outdir}/${current_file}${suffix}"_Trimmed.fastq.gz" ${I_arg}\
 		SLIDINGWINDOW:${S_arg} \
 		LEADING:${L_arg} \
 		TRAILING:${T_arg} \
@@ -244,10 +248,10 @@ elif [ ${1} == "PE" ]; then
 	# Precise to eliminate empty lists for the loop
 	shopt -s nullglob
 	# For each read file
-	for i in ${2}/*_R1*.fastq.gz ${2}/*_R1*.fq.gz; do
+	for i in ${2}/*_R1*.fastq.gz ${2}/*_R1*.fq.gz; do			
 		# Define paired files
-		R1=$i
-		R2=`echo $i | sed -e 's/_R1/_R2/g'`
+		R1=${i}
+		R2=`echo ${i} | sed -e 's/_R1/_R2/g'`
 		# Set variables for jobname
 		current_R1=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
 		current_R2=`echo ${current_R1} | sed -e 's/_R1/_R2/g'`
@@ -255,11 +259,11 @@ elif [ ${1} == "PE" ]; then
 		# Define JOBNAME and COMMAND and launch job
 		JOBNAME="Trim_${1}_${current_pair}"
 		COMMAND="conda activate Trimmomatic \n\
-		trimmomatic ${1} -threads 4 $R1 $R2 \
-		${outdir}/Paired/${current_R1}_Trimmed_Paired.fastq.gz \
-		${outdir}/Unpaired/${current_R1}_Trimmed_Unpaired.fastq.gz \
-		${outdir}/Paired/${current_R2}_Trimmed_Paired.fastq.gz \
-		${outdir}/Unpaired/${current_R2}_Trimmed_Unpaired.fastq.gz ${I_arg}\
+		trimmomatic ${1} -threads 4 ${indir_2}/${current_R1}${suffix}.fastq.gz ${indir_2}/${current_R2}${suffix}.fastq.gz \
+		${outdir}/Paired/${current_R1}${suffix}_Trimmed_Paired.fastq.gz \
+		${outdir}/Unpaired/${current_R1}${suffix}_Trimmed_Unpaired.fastq.gz \
+		${outdir}/Paired/${current_R2}${suffix}_Trimmed_Paired.fastq.gz \
+		${outdir}/Unpaired/${current_R2}${suffix}_Trimmed_Unpaired.fastq.gz ${I_arg}\
 		SLIDINGWINDOW:${S_arg} \
 		LEADING:${L_arg} \
 		TRAILING:${T_arg} \
@@ -276,5 +280,5 @@ elif [ $U_arg == "Trimmomatic" ]; then
 	TRIMMOMATIC_launch $1 $2
 elif [ $U_arg == "Both" ]; then
 	CLUMPIFY_launch $1 $2
-	TRIMMOMATIC_launch $1 'Trimmed/Clumpify'
+	TRIMMOMATIC_launch $1 $2
 fi
