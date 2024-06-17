@@ -34,7 +34,7 @@ ${BOLD}OPTIONS${END}\n\
 
 ${BOLD}ARGUMENTS${END}\n\
 	${BOLD}<input_dir>${END}\n\
-		Directory containing BAM files to index.\n\
+		Directory containing BAM files to index.\n\n\
    		
 ${BOLD}EXAMPLE USAGE${END}\n\
 	sh ${script_name} ${BOLD}-N${END} _sorted ${BOLD}-S${END} true ${BOLD}./BAM_directory${END}\n"
