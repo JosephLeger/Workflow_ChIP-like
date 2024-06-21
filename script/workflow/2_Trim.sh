@@ -108,7 +108,7 @@ done
 case $U_arg in
 	TRIMMOMATIC|Trimmomatic|trimmomatic) 
 		U_arg="Trimmomatic"
-		indir_2=${2}
+		indir_2=${@: -1}
 		suffix='';;
 	CLUMPIFY|Clumpify|clumpify) 
 		U_arg="Clumpify";;
