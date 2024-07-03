@@ -147,7 +147,7 @@ WAIT=`echo ${JOBLIST} | sed -e 's@_,@-hold_jid @'`
 # Precise to eliminate empty lists for the loop
 shopt -s nullglob
 # Launch index on files or files_sorted
-for file in ${1}/*${N_arg}.bam; do
+for file in ${1}/*${N_arg}*.bam; do
 	# Add suffix
  	file=`echo ${file} | sed -e "s@\.bam@${newsuffix}\.bam@g"`
 	# Set variables for jobname
