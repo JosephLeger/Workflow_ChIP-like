@@ -113,6 +113,19 @@ T2_arg="$(cut -d',' -f2 <<<"$T_arg")"
 # Deal with options [-O|-S|-K] and arguments [$1|$2|...]
 shift $((OPTIND-1))
 
+# Prepare for custom or Kmeans clustering
+case $K_arg in
+	[0-9]*) 
+		K_arg="--kmeans ${K_arg} "
+		bedfiles=${2};;
+	CUSTOM|Custom|custom) 
+		K_arg=''
+		bedfiles=${2}/*.bed;;
+	*) 
+		echo "Error value : -K argument must be 'custom' or an integer"
+		exit;;
+esac
+
 ################################################################################################################
 ### ERRORS -----------------------------------------------------------------------------------------------------
 ################################################################################################################
@@ -125,11 +138,14 @@ elif [ $# -lt 3 ]; then
 	echo "Error synthax : please use following synthax"
 	echo "      sh ${script_name} [options] <output_dir> <BED> <BW>"
 	exit
-
-# Check if outidr exist
-# Check that BED isn't empty / exists depending on -K arg custom or not
-# Check if BW is not empty
-
+elif [ ! -d "${1}" ]; then
+	# Error if provided output directory does not exist
+	echo 'Error : can not provided output directory. Please make sure the provided output directory exists.'
+	exit
+elif [ ${K_arg} == '' ] && [ $(ls ${2}/*.bed 2>/dev/null | wc -l) -lt 1 ]; then
+	# Error if -K custom is specified and provided directory does not exist or is empty
+	echo 'Error : can not find files in provided directory. Please make sure the provided input directory exists, and contains .bed files.'
+	exit
 fi
 
 ################################################################################################################
@@ -152,19 +168,6 @@ echo -e ${JOBNAME} >> ./0K_REPORT.txt
 echo -e ${COMMAND} | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
-
-# Prepare for custom or Kmeans clustering
-case $K_arg in
-	[0-9]*) 
-		bedfiles=${2}
-		K_arg="--kmeans ${K_arg} ";;
-	CUSTOM|Custom|custom) 
-		K_arg=''
-		bedfiles=${2}/*.bed;;
-	*) 
-		echo "Error value : -K argument must be 'custom' or an integer"
-		exit;;
-esac
 
 ## SORT BED - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
