@@ -80,6 +80,6 @@ output="${motif}_in_${fasta}_sorted.txt"
 # Define JOBNAME and COMMAND considering WAIT
 JOBNAME="ScanMotif_${motif}_in_${fasta}"
 COMMAND="scanMotifGenomeWide.pl ${2} ${1} > ${output} \n\
-paste <(head ${output} | cut -d $'\t' -f2 | sed -e 's@ .*@@g') <(head ${output} | cut -f3,4) <(head ${output} | cut -f1) <(head ${output} | cut -f5,6) > ${motif}_in_${fasta}_sorted.bed"
+paste <(cat ${output} | cut -d $'\t' -f2 | sed -e 's@ .*@@g') <(cat ${output} | cut -f3,4) <(cat ${output} | cut -f1) <(cat ${output} | cut -f5,6) > ${motif}_in_${fasta}_sorted.bed"
 Launch
 
