@@ -148,6 +148,12 @@ elif [ -z "${K_arg}" ]; then
 		echo 'Error : can not find files in provided directory. Please make sure the provided input directory exists, and contains .bed files.'
 		exit
   	fi
+elif [ ! -z "${K_arg}" ]; then
+	if [ ! -f ${2} ]; then
+ 	# Error if -K is not set to custom and provided bed file does not exists (avoid to erase file if -S true is specified by mistake)
+  	echo 'Error : can not find provided BED file.'
+	exit
+ 	fi
 fi
 
 ################################################################################################################
