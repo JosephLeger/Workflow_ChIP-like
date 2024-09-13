@@ -142,7 +142,7 @@ elif [ ! -d "${1}" ]; then
 	# Error if provided output directory does not exist
 	echo 'Error : can not provided output directory. Please make sure the provided output directory exists.'
 	exit
-elif [ ${K_arg} == '' ]; then
+elif [ -z "${K_arg}" ]; then
 	if [ $(ls ${2}/*.bed 2>/dev/null | wc -l) -lt 1 ]; then
 		# Error if -K custom is specified and provided directory does not exist or is empty
 		echo 'Error : can not find files in provided directory. Please make sure the provided input directory exists, and contains .bed files.'
