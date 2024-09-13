@@ -75,10 +75,11 @@ WAIT=''
 # Set variables for jobname
 fasta=`echo ${1} | sed -e 's@.*\/@@g' | sed -e 's@\.fa\|\.fasta@@g'`
 motif=`echo ${2} | sed -e 's@.*\/@@g' | sed -e 's@\.motif@@g'`
+output="${motif}_in_${fasta}_sorted.txt"
 
 # Define JOBNAME and COMMAND considering WAIT
 JOBNAME="ScanMotif_${motif}_in_${fasta}"
-COMMAND="scanMotifGenomeWide.pl ${2} ${1} > ${motif}_in_${fasta}_sorted.txt \n\
-paste <(head ${motif}_in_${fasta}_sorted.txt | cut -d $'\t' -f2 | sed -e 's@ .*@@g') <(head ${motif}_in_${fasta}_sorted.txt | cut -f3,4,1,5,6) > ${motif}_in_${fasta}_sorted.bed"
+COMMAND="scanMotifGenomeWide.pl ${2} ${1} > ${output} \n\
+paste <(head ${output} | cut -d $'\t' -f2 | sed -e 's@ .*@@g') <(head ${output} | cut -f3,4) <(head ${output} | cut -f1) <(head ${output} | cut -f5,6) > ${motif}_in_${fasta}_sorted.bed"
 Launch
 
