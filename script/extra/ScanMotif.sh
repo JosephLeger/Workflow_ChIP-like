@@ -78,7 +78,7 @@ motif=`echo ${2} | sed -e 's@.*\/@@g' | sed -e 's@\.motif@@g'`
 
 # Define JOBNAME and COMMAND considering WAIT
 JOBNAME="ScanMotif_${motif}_in_${fasta}"
-COMMAND="scanMotifGenomeWide.pl ${2} ${1} > ${motif}_in_${fasta}.txt \n\
-paste <(head ${motif}_in_${fasta}.txt | cut -d $'\t' -f2 | sed -e 's@ .*@@g') <(head ${motif}_in_${fasta}.txt | cut -f3,4,1,5,6) > ${motif}_in_${fasta}.bed"
+COMMAND="scanMotifGenomeWide.pl ${2} ${1} > ${motif}_in_${fasta}_sorted.txt \n\
+paste <(head ${motif}_in_${fasta}_sorted.txt | cut -d $'\t' -f2 | sed -e 's@ .*@@g') <(head ${motif}_in_${fasta}_sorted.txt | cut -f3,4,1,5,6) > ${motif}_in_${fasta}_sorted.bed"
 Launch
 
