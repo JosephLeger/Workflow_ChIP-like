@@ -216,7 +216,6 @@ elif [ $1 == "PE" ]; then
 fi
 
 ## SUMMARIZE STATS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Prepare summary file and WAIT list
 echo "Filename,SequencingDepth,MappedFragNum_${model},AlignmentRate_${model}" > Mapped/${model}/STAT/Summary_Stats.csv
 WAIT=`echo ${JOBLIST} | sed -e 's@_,@-hold_jid @'`
