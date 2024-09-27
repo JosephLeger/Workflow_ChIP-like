@@ -217,7 +217,7 @@ fi
 
 ## SUMMARIZE STATS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Prepare summary file and WAIT list
-echo "Filename,SequencingDepth,MappedFragNum_${model},AlignmentRate_${model}" > Mapped/${model}/STAT/Summary_Stats.csv
+echo "Filename,SequencingDepth,Mono_MappedFragNum_${model},Multi_MappedFragNum_${model},Total_MappedFragNum_${model},AlignmentRate_${model}" > Mapped/${model}/STAT/Summary_Stats.csv
 WAIT=`echo ${JOBLIST} | sed -e 's@_,@-hold_jid @'`
 
 # Unset Shopt Builtin (necessary for the following Job)
@@ -232,7 +232,7 @@ mono_mapped=\`cat \${stat} | sed -n '4p' | sed -e 's@ *@@' | sed -e 's@ .*@@g'\`
 multi_mapped=\`cat \${stat} | sed -n '5p' | sed -e 's@ *@@' | sed -e 's@ .*@@g'\` \n\
 mapped=\`echo \${mono_mapped}'+'\${multi_mapped} | bc\` \n\
 rate=\`cat \${stat} | sed -n '6p' | sed -e 's@ .*@@g'\` \n\
-echo "\${file},\${depth},\${mapped},\${rate}" >> Mapped/${model}/STAT/Summary_Stats.csv \n\
+echo "\${file},\${depth},\${mono_mapped},\${multi_mapped},\${mapped},\${rate}" >> Mapped/${model}/STAT/Summary_Stats.csv \n\
 done"
 Launch
 
