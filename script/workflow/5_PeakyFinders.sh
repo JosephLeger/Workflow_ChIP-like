@@ -210,9 +210,9 @@ date >> ./0K_REPORT.txt
 Launch()
 {
 # Launch COMMAND and save report
-echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n"${COMMAND} | qsub -N ${JOBNAME} ${WAIT}
-echo -e ${JOBNAME} >> ./0K_REPORT.txt
-echo -e ${COMMAND} | sed -r 's@\|@\n@g' | sed 's@^@   \| @' >> ./0K_REPORT.txt
+echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n""${COMMAND}" | qsub -N "${JOBNAME}" ${WAIT}
+echo -e "${JOBNAME}" >> ./0K_REPORT.txt
+echo -e "${COMMAND}" | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
 
