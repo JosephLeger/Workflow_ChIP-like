@@ -155,9 +155,9 @@ date >> ./0K_REPORT.txt
 Launch()
 {
 # Launch COMMAND and save report
-echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n"${COMMAND} | qsub -N ${JOBNAME} ${WAIT}
-echo -e ${JOBNAME} >> ./0K_REPORT.txt
-echo -e ${COMMAND} | sed 's@^@   \| @' >> ./0K_REPORT.txt
+echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n""${COMMAND}" | qsub -N "${JOBNAME}" ${WAIT}
+echo -e "${JOBNAME}" >> ./0K_REPORT.txt
+echo -e "${COMMAND}" | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
 
@@ -171,12 +171,12 @@ for current_tag in ${1}/*; do
 		# Define JOBNAME and COMMAND and launch job
 		if [ ${A_arg} == 'true' ]; then
 			JOBNAME=AnnotatePeaks_"${current_file}"
-			COMMAND="annotatePeaks.pl ${i} ${2} -gtf ${3} > ${current_tag}/${current_file}_annotated.txt"
+			COMMAND="annotatePeaks.pl "${i}" ${2} -gtf ${3} > "${current_tag}"/"${current_file}"_annotated.txt"
 			Launch
 		fi
 		if [ ${M_arg} == 'true' ]; then
 			JOBNAME=AnnotateMotifs_"${current_file}"
-			COMMAND="findMotifsGenome.pl ${i} ${2} ${current_tag} -size ${R_arg} -len ${L_arg} -S ${S_arg}"
+			COMMAND="findMotifsGenome.pl "${i}" ${2} "${current_tag}" -size ${R_arg} -len ${L_arg} -S ${S_arg}"
 			Launch
 		fi
 	done
