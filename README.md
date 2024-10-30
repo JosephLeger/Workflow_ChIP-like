@@ -100,10 +100,10 @@ sh 4_BowtieCheck.sh -N '_sorted' -T 10 -R false Mapped/mm39/BAM
 Syntax : ```sh 5_PeakyFinders.sh [options] <chrom_size> <input_dir1> <...>```  
 ```bash
 # Using MACS2
-sh 5_PeakyFinders.sh -U 'MACS2' -N '_filtered' Mapped/mm39/BAM
+sh 5_PeakyFinders.sh -U 'MACS2' -N '_filtered' Mapped/mm39/BAM ./Ref/mm39.chrom.sizes
 
 # using HOMER
-sh 5_PeakyFinders -U 'HOMER'-N '_filtered' -S 50 -M dnase -L 4 -C 2 ./Ref/mm39.chrom.sizes Mapped/mm39/BAM
+sh 5_PeakyFinders -U 'HOMER' -N '_filtered' -S 50 -M dnase -L 4 -C 2 Mapped/mm39/BAM ./Ref/mm39.chrom.sizes
 ```
 *Note : adapt -M option according to the type of data. Use **dnase** for chromatin accessibility, **histone** for epigenetic marks and **factor** for CUT&RUN.*  
 
