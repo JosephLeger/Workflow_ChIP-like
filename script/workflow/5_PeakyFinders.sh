@@ -245,7 +245,7 @@ if [ ${U_arg} == 'HOMER' ]; then
 		-tagThreshold ${T_arg} ${I_arg}${F_arg}\n\
 		grep -v '^#' ${peaks_txt} | awk -v OFS='\t' '{print \$2,\$3,\$4,\$1,\$8,\$5}' | bedtools sort > ${peaks_bed} \n\
 		genomeCoverageBed -bga -i ${peaks_bed} -g ${2} | bedtools sort > ${bedgraph} \n\
-		bedGraphToBigWig ${bedgraph} ${1} ${bigwig}"
+		bedGraphToBigWig ${bedgraph} ${2} ${bigwig}"
 		Launch
 		# Append SampleSheet
 		echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> HOMER/SampleSheet_HOMER.csv
@@ -280,7 +280,7 @@ elif [ ${U_arg} == 'MACS2' ]; then
 		--nomodel --shift ${H_arg} --extsize ${E_arg} \
 		-n ${current_tag} --outdir ${outdir} \n\
 		genomeCoverageBed -bga -i ${summits_bed} -g ${2} | bedtools sort > ${bedgraph} \n\
-		bedGraphToBigWig ${bedgraph} ${1} ${bigwig}"
+		bedGraphToBigWig ${bedgraph} ${2} ${bigwig}"
 		Launch
 		# Append SampleSheet
 		echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> MACS2/SampleSheet_MACS2.csv
