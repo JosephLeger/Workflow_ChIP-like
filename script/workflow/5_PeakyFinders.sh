@@ -72,11 +72,16 @@ ${BOLD}MACS2 Options${END}\n\n\
 	${BOLD}-G${END} ${UDL}size${END}, ${BOLD}G${END}enomSize\n\
 		Effective genome size. Default human = 2.7e9 ; Default mouse : 1.87e9.\n\
 		Default = 1.87e9\n\n\
+	${BOLD}-F${END} ${UDL}format${END}, ${BOLD}F${END}ormat\n\
+		Define file format used as input. Must be in 'BAM' or 'BED' for usual peak calling.\n\
+		Could also be 'BEDGRAPH', in this case it will be run using macs2 bdgpeakcall function.\n\
+		Default = BAM\n\n\
 	${BOLD}-H${END} ${UDL}integer${END}, S${BOLD}h${END}ift\n\
 		Value used to move cutting ends before applying ExtendSize parameter.\n\
 		Default = 50\n\n\
-	${BOLD}-E${END} ${UDL}integer${END}, ${BOLD}E${END}xtendSize\n\
+	${BOLD}-S${END} ${UDL}integer${END}, ${BOLD}S${END}ize(Extend)\n\
 		Extend reads by fixing fragment size to provided length.\n\
+		If BEDGRAPH input files are used, it must be sat as fragment size.\n\
 		Default = 100\n\n\
 
 	For more details, please see MACS2 manual \n\n\
@@ -95,7 +100,9 @@ ${BOLD}ARGUMENTS${END}\n\
 			4) Make sure entries are Tab separated.\n\n\
     
 ${BOLD}EXAMPLE USAGE${END}\n\
-	sh ${script_name} -U 'HOMER' ${BOLD}-N${END} _unique_filtered ${BOLD}-S${END} 50 ${BOLD}-M${END} dnase ${BOLD}-I${END} none ${BOLD}-F${END} none ${BOLD}-L${END} 4 ${BOLD}-C${END} 2 ${BOLD}Mapped/mm39/BAM ${usr}/Ref/Genome/mm39.chrom.sizes${END}\n"
+	sh ${script_name} ${BOLD}-U${END} 'HOMER' ${BOLD}-N${END} _filtered ${BOLD}-S${END} 50 ${BOLD}-M${END} dnase ${BOLD}-I${END} none ${BOLD}-F${END} none ${BOLD}-L${END} 4 ${BOLD}-C${END} 2 ${BOLD}Mapped/mm39/BAM ${usr}/Ref/Genome/mm39.chrom.sizes${END}\n\
+		or\n\
+	sh ${script_name} ${BOLD}-U${END} 'MACS2' ${BOLD}-N${END} _filtered ${BOLD}-G${END} 1.87e9 ${BOLD}-F${END} BAM ${BOLD}-H${END} 0 ${BOLD}-S${END} 50 ${BOLD}Mapped/mm39/BAM ${usr}/Ref/Genome/mm39.chrom.sizes${END}"
 }
 
 ################################################################################################################
@@ -106,27 +113,47 @@ ${BOLD}EXAMPLE USAGE${END}\n\
 N_arg='_filtered'
 U_arg='HOMER'
 #
-S_arg='auto'
-M_arg='factor'
-I_arg='None' 
-F_arg=4 
-L_arg=4
-C_arg=2
-T_arg=2
+#S_arg='auto'
+#M_arg='factor'
+#I_arg='None' 
+#F_arg=4 
+#L_arg=4
+#C_arg=2
+#T_arg=2
 #
-G_arg=1.87e9
-H_arg=50
-E_arg=100
+#G_arg=1.87e9
+#H_arg=50
+#E_arg=100
 
 
 # Change default values if another one is precised
-while getopts ":N:U:S:M:I:F:L:C:T:G:H:E:" option; do
+while getopts ":N:U:S:M:I:F:L:C:T:G:H:" option; do
 	case $option in
 		N) # NAME OF FILE (SUFFIX)
 			N_arg=${OPTARG};;
 		U) # USED TOOL FOR PEAK CALLING
-			U_arg=${OPTARG};;
-		S) # SIZE OF FRAGMENTS
+			U_arg=${OPTARG}
+			case ${U_arg} in
+				HOMER|Homer|homer)
+					U_arg='HOMER'
+					S_arg='auto'
+					M_arg='factor'
+					I_arg='None' 
+					F_arg=4 
+					L_arg=4
+					C_arg=2
+					T_arg=2;;
+				MACS2|Macs2|macs2)
+					U_arg='MACS2'
+					G_arg=1.87e9
+					F_arg='BAM'
+					H_arg=50
+					S_arg=100;;
+				*) 
+					echo "Error value : -U argument must be 'HOMER' or 'MACS2'"
+					exit;;
+			esac;;
+		S) # SIZE OF FRAGMENTS OR FRAGMENT SIZE EXTEND
 			S_arg=${OPTARG};;
 		M) # MODE TO RUN FIND PEAKS (STYLE)
 			M_arg=${OPTARG};;
@@ -144,36 +171,48 @@ while getopts ":N:U:S:M:I:F:L:C:T:G:H:E:" option; do
 			G_arg=${OPTARG};;
 		H) # MACS2 SHIFT
 			H_arg=${OPTARG};;
-		E) # MAC2 EXTEND
-			E_arg=${OPTARG};;
 		\?) # Error
 			echo "Error : invalid option"
-			echo "      Allowed options are [-N|-U|-S|-M|-I|-F|-L|-C|-T|-G|-H|-E]"
+			echo "      Allowed options are [-N|-U|-S|-M|-I|-F|-L|-C|-T|-G]"
 			echo "      Enter 'sh ${script_name} help' for more details"
 			exit;;
 	esac
 done
 
 # Checking if provided option values are correct
-case $I_arg in
-	None|none|FALSE|False|false|F) 
-		I_arg=''
-		F_arg='';;
-	*) 
-		I_arg='-i '$I_arg
-		F_arg='-F '$F_arg' ';;
-esac
-case $U_arg in
-	HOMER|homer|Homer) 
-		U_arg='HOMER';;
-	MACS2|mac2|Macs2)
-		U_arg='MACS2';;
-	*) 
-		echo "Error value : -U argument must be 'HOMER' or 'MACS2'"
-		exit;;
+
+case ${U_arg} in
+	HOMER)
+		file_ext='bam'
+		case ${I_arg} in
+			None|none|FALSE|False|false|F) 
+				I_arg=''
+				F_arg='';;
+			*) 
+				I_arg='-i '${I_arg}
+				F_arg='-F '${F_arg}' ';;
+		esac;;
+	MACS2)
+		case ${F_arg} in
+			BAM|Bam|bam) 
+				F_arg='BAM'
+				file_ext='bam'
+				BDG='';;
+			BED|Bed|bed)
+				F_arg='BED'
+				file_ext='bed'
+				BDG='';;
+			BEDGRAPH|Bedgraph|bedgraph|BedGraph|bdg|Bdg|BDG)
+				F_arg='BEDGRAPH'
+				file_ext='bedgraph'
+				BDG='_BDG';;
+			*) 
+				echo "Error value : -F argument must be 'BAM', 'BED' or 'BEDGRAPH'"
+				exit;;
+		esac;;
 esac
 
-# Deal with options [-N|-U|-S|-M|-I|-F|-L|-C|-T|-G|-H|-E] and arguments [$1|$2]
+# Deal with options [-N|-U|-S|-M|-I|-F|-L|-C|-T|-G|-H] and arguments [$1|$2]
 shift $((OPTIND-1))
 
 ################################################################################################################
@@ -188,9 +227,9 @@ elif [ $# -ne 2 ]; then
 	echo "Error synthax : please use following synthax"
 	echo "      sh ${script_name} [options] <input_dir> <chr_size_file>"
 	exit
-elif [ $(ls $1/*${N_arg}*.bam 2>/dev/null | wc -l) -lt 1 ]; then
+elif [ $(ls $1/*${N_arg}*.${file_ext} 2>/dev/null | wc -l) -lt 1 ]; then
 	# Error if provided directory is empty or does not exists
-	echo 'Error : can not find files to align in provided directory. Please make sure the provided input directory exists, and contains matching .bam files.'
+	echo "Error : can not find files to process in provided directory. Please make sure the provided input directory exists, and contains matching .${file_ext} files."
 	exit
 fi
 
@@ -258,12 +297,12 @@ elif [ ${U_arg} == 'MACS2' ]; then
 	# Create Tags output directories
 	mkdir -p MACS2/Peaks
 	# Initialize SampleSheet
-	echo "ID,Tissue,Factor,Condition,Treatment,Replicate,bamReads,Peaks,PeakCaller" > MACS2/SampleSheet_MACS2.csv
+	echo "ID,Tissue,Factor,Condition,Treatment,Replicate,bamReads,Peaks,PeakCaller" > MACS2/SampleSheet_MACS2${BDG}.csv
 
 	# For each matching BAM file in $input directory
-	for file in ${1}/*${N_arg}*.bam; do    
+	for file in ${1}/*${N_arg}*.${file_ext}; do    
 		# Define current tag
-		current_tag=`echo ${file} | sed -e "s@${1}/@@g" | sed -e "s@${N_arg}@@g" | sed -e 's@\.bam@@g'`
+		current_tag=`echo ${file} | sed -e "s@${1}/@@g" | sed -e "s@\.${file_ext}@@g"`
 		# Create output dir
 		outdir=MACS2/Peaks/${current_tag}
 		mkdir -p ${outdir}
@@ -274,15 +313,25 @@ elif [ ${U_arg} == 'MACS2' ]; then
 		bedgraph=${outdir}/${current_tag}_summits.bedgraph
 		bigwig=${outdir}/${current_tag}_summits.bw
 	    
-		# Define JOBNAME and COMMAND and launch job
-		JOBNAME="MACS2_${current_tag}"
-		COMMAND="macs2 callpeak -t ${file} -f BAM -g ${G_arg} \
-		--nomodel --shift ${H_arg} --extsize ${E_arg} \
-		-n ${current_tag} --outdir ${outdir} \n\
-		genomeCoverageBed -bga -i ${summits_bed} -g ${2} | bedtools sort > ${bedgraph} \n\
-		bedGraphToBigWig ${bedgraph} ${2} ${bigwig}"
-		Launch
-		# Append SampleSheet
-		echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> MACS2/SampleSheet_MACS2.csv
+		# Define JOBNAME
+		JOBNAME="MACS2${BDG}_${current_tag}"
+
+		if [ ${F_arg} == 'BEDGRAPH' ]; then
+			# Define COMMAND
+			COMMAND="macs2 bdgpeakcall -i ${file} --cutoff 0.5 --min-length ${S_arg} \
+			--max-gap ${S_arg} -o ${summits_bed}\n\
+			genomeCoverageBed -bga -i ${summits_bed} -g ${2} | bedtools sort > ${bedgraph} \n\
+			bedGraphToBigWig ${bedgraph} ${2} ${bigwig}"
+		else
+			# Define COMMAND
+			COMMAND="macs2 callpeak -t ${file} --format ${F_arg} --gsize ${G_arg} \
+			--nomodel --shift ${H_arg} --extsize ${S_arg} \
+			-n ${current_tag} --outdir ${outdir} \n\
+			genomeCoverageBed -bga -i ${summits_bed} -g ${2} | bedtools sort > ${bedgraph} \n\
+			bedGraphToBigWig ${bedgraph} ${2} ${bigwig}"
+		fi
+	Launch
+	# Append SampleSheet
+	echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> MACS2/SampleSheet_MACS2${BDG}.csv
 	done
 fi
