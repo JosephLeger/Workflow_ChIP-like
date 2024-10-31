@@ -16,7 +16,7 @@ UDL='\033[4m'
 # Show command manual
 Help()
 {
-echo -e "${BOLD}####### FILTER MANUAL #######${END}\n\n\
+echo -e "${BOLD}####### BOWTIECHECK MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
 	sh ${script_name} [options] <input_dir>\n\n\
 
