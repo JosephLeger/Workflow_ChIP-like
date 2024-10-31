@@ -112,19 +112,6 @@ ${BOLD}EXAMPLE USAGE${END}\n\
 # Set default values
 N_arg='_filtered'
 U_arg='HOMER'
-#
-#S_arg='auto'
-#M_arg='factor'
-#I_arg='None' 
-#F_arg=4 
-#L_arg=4
-#C_arg=2
-#T_arg=2
-#
-#G_arg=1.87e9
-#H_arg=50
-#E_arg=100
-
 
 # Change default values if another one is precised
 while getopts ":N:U:S:M:I:F:L:C:T:G:H:" option; do
@@ -180,7 +167,6 @@ while getopts ":N:U:S:M:I:F:L:C:T:G:H:" option; do
 done
 
 # Checking if provided option values are correct
-
 case ${U_arg} in
 	HOMER)
 		file_ext='bam'
