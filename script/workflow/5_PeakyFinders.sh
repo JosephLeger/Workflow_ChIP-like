@@ -16,7 +16,7 @@ UDL='\033[4m'
 # Show command manual
 Help()
 {
-echo -e "${BOLD}####### PEAKYFINDER MANUAL #######${END}\n\n\
+echo -e "${BOLD}####### PEAKYFINDERS MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
 	sh ${script_name} [options] <input_dir> <chrom_size>\n\n\
 
