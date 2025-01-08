@@ -37,7 +37,7 @@ To get more information about using these scripts, enter the command ```sh <scri
   
 ### Environments
 The workflow is encoded in Shell language and is supposed to be launched under a Linux environment.  
-Moreover, it was written to be used on a computing cluster with tools already pre-installed in the form of modules. Modules are so loaded using `module load <tool_name>` command. If you use manually installed environments, simply replace module loading in script section by the environment activation command.  
+Moreover, it was written to be used on a computing cluster using **Sun Grid Engine (SGE)** with tools already pre-installed in the form of modules. Modules are so loaded using `module load <tool_name>` command. If you use manually installed environments, simply replace module loading in script section by the environment activation command.  
 All script files launch tasks as **qsub** task submission. To successfully complete the workflow, wait for all the jobs in a step to be completed before launching the next one.  
 
 ### Requirments
