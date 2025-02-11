@@ -265,6 +265,7 @@ if [ ${U_arg} == 'HOMER' ]; then
 		# Define JOBNAME and COMMAND and launch job
 		JOBNAME="HOMER_${current_tag}"
 		COMMAND="makeTagDirectory HOMER/Tags/${current_tag} ${file} -fragLength ${S_arg} -single \n\
+  		makeUCSCfile HOMER/Tags/${current_tag} -o auto \n\
 		findPeaks HOMER/Tags/${current_tag} -style ${M_arg} \
 		-o ${peaks_txt} -L ${L_arg} -C ${C_arg} \
 		-tagThreshold ${T_arg} ${I_arg}${F_arg}\n\
