@@ -194,6 +194,9 @@ echo -e "${COMMAND}" | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
 WAIT=''
 
+# Set default file extention
+file_ext='fastq.gz'
+
 ## DEFINE FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CLUMPIFY_launch()
 {
@@ -227,7 +230,7 @@ elif [ ${1} == "PE" ]; then
 		# Set variables for jobname
 		current_R1=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
 		current_R2=`echo ${current_R1} | sed -e 's/_R1/_R2/g'`
-		current_pair=`echo ${current_R1} | sed -e 's@_R1@@g' | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
+		current_pair=`echo ${current_R1} | sed -e 's@_R1@@g'`
 		# Define JOBNAME and COMMAND and launch job
 		JOBNAME="Clumpify_${current_pair}"
 		COMMAND="clumpify.sh in=${R1} in2=${R2} out=${outdir}/${current_R1}_Clum.fastq.gz out2=${outdir}/${current_R2}_Clum.fastq.gz dedupe=${D_arg} subs=0"
@@ -249,13 +252,15 @@ if [ ${1} == "SE" ]; then
 	shopt -s nullglob
 	# For each read file
 	for i in ${2}/*.fastq.gz ${2}/*.fq.gz; do
+		# Modify default extension if necessary
+		if [ `echo ${i} | grep 'fq.gz$' | wc -l` -eq 1 ]; then file_ext='fq.gz'; fi
 		# Set variables for jobname
-		current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
+		current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e "s@\.${file_ext}@@g"`
 		# Define JOBNAME and COMMAND and launch job
 		JOBNAME="Trim_${1}_${current_file}"
 		COMMAND="conda activate base \n\
 		conda activate Trimmomatic \n\
-		trimmomatic ${1} -threads 4 ${indir_2}/${current_file}${suffix}.fastq.gz \
+		trimmomatic ${1} -threads 4 ${indir_2}/${current_file}${suffix}.${file_ext} \
 		${outdir}/${current_file}${suffix}"_Trimmed.fastq.gz" ${I_arg}\
 		SLIDINGWINDOW:${S_arg} \
 		LEADING:${L_arg} \
@@ -268,18 +273,20 @@ elif [ ${1} == "PE" ]; then
 	# Precise to eliminate empty lists for the loop
 	shopt -s nullglob
 	# For each read file
-	for i in ${2}/*_R1*.fastq.gz ${2}/*_R1*.fq.gz; do			
+	for i in ${2}/*_R1*.fastq.gz ${2}/*_R1*.fq.gz; do
+		# Modify default extension if necessary
+		if [ `echo ${i} | grep 'fq.gz$' | wc -l` -eq 1 ]; then file_ext='fq.gz'; fi
 		# Define paired files
 		R1=${i}
 		R2=`echo ${i} | sed -e 's/_R1/_R2/g'`
 		# Set variables for jobname
-		current_R1=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
+		current_R1=`echo $i | sed -e "s@${2}\/@@g" | sed -e "s@\.${file_ext}@@g"`
 		current_R2=`echo ${current_R1} | sed -e 's/_R1/_R2/g'`
 		current_pair=`echo ${current_R1} | sed -e 's@_R1@@g'`
 		# Define JOBNAME and COMMAND and launch job
 		JOBNAME="Trim_${1}_${current_pair}"
 		COMMAND="conda activate Trimmomatic \n\
-		trimmomatic ${1} -threads 4 ${indir_2}/${current_R1}${suffix}.fastq.gz ${indir_2}/${current_R2}${suffix}.fastq.gz \
+		trimmomatic ${1} -threads 4 ${indir_2}/${current_R1}${suffix}.${file_ext} ${indir_2}/${current_R2}${suffix}.${file_ext} \
 		${outdir}/Paired/${current_R1}${suffix}_Trimmed_Paired.fastq.gz \
 		${outdir}/Unpaired/${current_R1}${suffix}_Trimmed_Unpaired.fastq.gz \
 		${outdir}/Paired/${current_R2}${suffix}_Trimmed_Paired.fastq.gz \
