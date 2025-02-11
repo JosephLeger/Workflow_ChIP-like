@@ -232,6 +232,7 @@ elif [ ${1} == "PE" ]; then
 		JOBNAME="Clumpify_${current_pair}"
 		COMMAND="clumpify.sh in=${R1} in2=${R2} out=${outdir}/${current_R1}_Clum.fastq.gz out2=${outdir}/${current_R2}_Clum.fastq.gz dedupe=${D_arg} subs=0"
 		JOBLIST=${JOBLIST}','${JOBNAME}
+  		Launch
 	done
 fi
 }
