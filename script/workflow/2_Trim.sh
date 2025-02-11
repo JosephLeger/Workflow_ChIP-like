@@ -203,18 +203,37 @@ outdir='Trimmed/Clumpify'
 mkdir -p ${outdir}
 # Initialize JOBLIST for WAIT
 JOBLIST='_'
-# Precise to eliminate empty lists for the loop
-shopt -s nullglob
-# For each read file
-for i in ${2}/*.fastq.gz ${2}/*.fq.gz; do
-	# Set variables for jobname
-	current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
-	# Define JOBNAME and COMMAND and launch job
-	JOBNAME="Clumpify_${current_file}"
-	COMMAND="clumpify.sh in=${i} out=${outdir}/${current_file}_Clum.fastq.gz dedupe=${D_arg} subs=0"
-	JOBLIST=${JOBLIST}','${JOBNAME}
-	Launch
-done
+if [ ${1} == "SE" ]; then
+	# Precise to eliminate empty lists for the loop
+	shopt -s nullglob
+	# For each read file
+	for i in ${2}/*.fastq.gz ${2}/*.fq.gz; do
+		# Set variables for jobname
+		current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
+		# Define JOBNAME and COMMAND and launch job
+		JOBNAME="Clumpify_${current_file}"
+		COMMAND="clumpify.sh in=${i} out=${outdir}/${current_file}_Clum.fastq.gz dedupe=${D_arg} subs=0"
+		JOBLIST=${JOBLIST}','${JOBNAME}
+		Launch
+	done
+elif [ ${1} == "PE" ]; then
+	# Precise to eliminate empty lists for the loop
+	shopt -s nullglob
+	# For each read file
+	for i in ${2}/*_R1*.fastq.gz ${2}/*_R1*.fq.gz; do
+		# Define paired files
+		R1=${i}
+		R2=`echo ${i} | sed -e 's@_R1@_R2@g'`
+		# Set variables for jobname
+		current_R1=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
+		current_R2=`echo ${current_R1} | sed -e 's/_R1/_R2/g'`
+		current_pair=`echo ${current_R1} | sed -e 's@_R1@@g' | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
+		# Define JOBNAME and COMMAND and launch job
+		JOBNAME="Clumpify_${current_pair}"
+		COMMAND="clumpify.sh in=${R1} in2=${R2} out=${outdir}/${current_R1}_Clum.fastq.gz out2=${outdir}/${current_R2}_Clum.fastq.gz dedupe=${D_arg} subs=0"
+		JOBLIST=${JOBLIST}','${JOBNAME}
+	done
+fi
 }
 
 TRIMMOMATIC_launch()
