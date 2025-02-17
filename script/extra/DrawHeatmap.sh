@@ -59,7 +59,7 @@ ${BOLD}ARGUMENTS${END}\n\
 		It could be multiple files (BW1.bw BW2.bw BW3.bw) or a matching pattern (BW*.bw) \n\n\
    		
 ${BOLD}EXAMPLE USAGE${END}\n\
-	sh ${script_name} ${BOLD}-O${END} 'MatrixHeatmap' ${BOLD}-S${END} true ${BOLD}-K${END} 1 ${BOLD}outdir peaks.bed regions_*.bw${END}\n"
+	sh ${script_name} ${BOLD}-O${END} 'MatrixHeatmap' ${BOLD}-S${END} true ${BOLD}-K${END} 1 ${BOLD}-F${END} png ${BOLD}outdir peaks.bed regions_*.bw${END}\n"
 }
 
 ################################################################################################################
