@@ -42,6 +42,10 @@ ${BOLD}OPTIONS${END}\n\
 		Define plot Height and Width in cm.\n\
 		Height must be between a range 3-100 and Width in a range 1-100.\n\
 		Default = '50,8'\n\n\
+  	${BOLD}-F${END} ${UDL}string${END}, ${BOLD}F${END}ormat\n\
+		Define format for saving plot.\n\
+		Format should be 'png', 'pdf', 'eps' or 'svg'\n\
+		Default = 'png'\n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
 	${BOLD}<output_dir>${END}\n\
@@ -68,9 +72,10 @@ S_arg='false'
 K_arg=1
 Z_arg='0,50'
 T_arg='50,8'
+F_arg='png'
 
 # Change default values if another one is precised
-while getopts ":O:S:K:Z:T:" option; do
+while getopts ":O:S:K:Z:T:F:" option; do
 	case $option in
 		O) # OUTPUT FILENAME
 			O_arg=${OPTARG};;
@@ -82,9 +87,11 @@ while getopts ":O:S:K:Z:T:" option; do
 			Z_arg=${OPTARG};;
 		T) # PLOT SIZE
 			T_arg=${OPTARG};;
+   		F) # PLOT SIZE
+			F_arg=${OPTARG};;
 		\?) # Error
 			echo "Error : invalid option"
-			echo "      Allowed options are [-O|-S|-K|-Z|-T]"
+			echo "      Allowed options are [-O|-S|-K|-Z|-T|-F]"
 			echo "      Enter 'sh ${script_name} help' for more details"
 			exit;;
 	esac
@@ -110,12 +117,15 @@ Z2_arg="$(cut -d',' -f2 <<<"$Z_arg")"
 T1_arg="$(cut -d',' -f1 <<<"$T_arg")"
 T2_arg="$(cut -d',' -f2 <<<"$T_arg")"
 
-# Deal with options [-O|-S|-K] and arguments [$1|$2|...]
+# Deal with options [-O|-S|-K|-Z|-T|-F] and arguments [$1|$2|...]
 shift $((OPTIND-1))
 
 # Prepare for custom or Kmeans clustering
 case $K_arg in
-	[0-9]*) 
+	[0-1])
+ 		K_arg=' '
+   		bedfiles=${2};;
+	[2-9]|[1-9][0-9]*) 
 		K_arg="--kmeans ${K_arg} "
 		bedfiles=${2};;
 	CUSTOM|Custom|custom) 
@@ -223,7 +233,7 @@ COMMAND="computeMatrix reference-point --referencePoint center \
 plotHeatmap -m $1'/'${O_arg}'.gz' \
 --colorList white,blue \
 --heatmapHeight ${T1_arg} --heatmapWidth ${T2_arg} \
--out $1'/'${O_arg}'.png' \
+-out $1'/'${O_arg}'.'${F_arg} \
 --whatToShow 'plot, heatmap and colorbar' \
 --zMin ${Z1_arg} --zMax ${Z2_arg} \
 ${K_arg}"
