@@ -109,6 +109,13 @@ case $S_arg in
 		echo "Error value : -S argument must be 'true' or 'false'"
 		exit;;
 esac 
+case $F_arg in
+	png|pdf|eps|svg) 
+		F_arg=${F_arg};;
+	*) 
+		echo "Error value : -F argument must be 'png', 'pdf', 'eps' or 'svg'"
+		exit;;
+esac 
 
 # Subset parameter lists
 Z1_arg="$(cut -d',' -f1 <<<"$Z_arg")"
