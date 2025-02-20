@@ -44,11 +44,7 @@ ${BOLD}HOMER Options${END}\n\
 		Must be in 'factor', 'histone', 'super', 'groseq', 'tss', 'dnase' or 'mC'.\n\
 		Default = factor\n\n\
 	${BOLD}-I${END} ${UDL}file${END}, ${BOLD}I${END}nputControl\n\
-		NOT FUNCTIONNAL YET\n\
-		THE IDEA IS TO PRECISE ORIGINATE BAM IGG FOLDER TO ASSUME FURTHER TAG FOLDER REQUIRED FOR THE COMMAND\n\
-		Specify a folder containing input control BAM files to use as reference background noize for peak calling.\n\
-		If setted, peaks are filtered based on threshold defined with -F option.\n\
-		It usually correspond to IgG experiment. \n\
+		Specify a CSV file containing 2 columns corresponding to 1)Tested BAM file; 2)Input BAM file. \n\
 		Default = None\n\n\
 	${BOLD}-F${END} ${UDL}threshold${END}, ${BOLD}F${END}oldEnrichmentVersusInput\n\
 		NOT FUNCTIONNAL YET\n\
@@ -172,11 +168,9 @@ case ${U_arg} in
 		file_ext='bam'
 		case ${I_arg} in
 			None|none|FALSE|False|false|F) 
-				I_arg=''
-				F_arg='';;
+				I_arg='None';;
 			*) 
-				I_arg='-i '${I_arg}
-				F_arg='-F '${F_arg}' ';;
+				I_arg=${I_arg};;
 		esac;;
 	MACS2)
 		case ${F_arg} in
@@ -217,6 +211,9 @@ elif [ $(ls $1/*${N_arg}*.${file_ext} 2>/dev/null | wc -l) -lt 1 ]; then
 	# Error if provided directory is empty or does not exists
 	echo "Error : can not find files to process in provided directory. Please make sure the provided input directory exists, and contains matching .${file_ext} files."
 	exit
+
+	### ADD ERROR IF CSV IS PRECISED BUT NOT FOUND
+
 fi
 
 ################################################################################################################
@@ -249,33 +246,87 @@ if [ ${U_arg} == 'HOMER' ]; then
 	# Initialize SampleSheet
 	echo "ID,Tissue,Factor,Condition,Treatment,Replicate,bamReads,Peaks,PeakCaller" > HOMER/SampleSheet_HOMER.csv
 	# For each matching BAM file in $input directory
-	for file in ${1}/*${N_arg}*.bam; do
-		# Genrate tag_name by removing pathway, suffix and .bam of read files
-		current_tag=`echo ${file} | sed -e "s@${1}\/@@g" | sed -e 's@\.bam@@g'`
-		# Create Peaks output directories
-		outdir=HOMER/Peaks/${current_tag}
-		mkdir -p ${outdir}
+	
+	# Look if a CSV file for input BAM was specified
+	if [ ${I_arg} == 'None' ]; then
+		for file in ${1}/*${N_arg}*.bam; do
+			# Genrate tag_name by removing pathway, suffix and .bam of read files
+			current_tag=`echo ${file} | sed -e "s@${1}\/@@g" | sed -e 's@\.bam@@g'`
+			# Create Peaks output directories
+			outdir=HOMER/Peaks/${current_tag}
+			mkdir -p ${outdir}
 
-		# Set variables for the run :
-		peaks_txt=${outdir}/${current_tag}_peaks.txt
-		peaks_bed=${outdir}/${current_tag}_peaks.bed
-		bedgraph=${outdir}/${current_tag}_peaks.bedgraph
-		bigwig=${outdir}/${current_tag}_peaks.bw
+			# Set variables for the run :
+			peaks_txt=${outdir}/${current_tag}_peaks.txt
+			peaks_bed=${outdir}/${current_tag}_peaks.bed
+			bedgraph=${outdir}/${current_tag}_peaks.bedgraph
+			bigwig=${outdir}/${current_tag}_peaks.bw
 
-		# Define JOBNAME and COMMAND and launch job
-		JOBNAME="HOMER_${current_tag}"
-		COMMAND="makeTagDirectory HOMER/Tags/${current_tag} ${file} -fragLength ${S_arg} -single \n\
-  		makeUCSCfile HOMER/Tags/${current_tag} -o auto \n\
-		findPeaks HOMER/Tags/${current_tag} -style ${M_arg} \
-		-o ${peaks_txt} -L ${L_arg} -C ${C_arg} \
-		-tagThreshold ${T_arg} ${I_arg}${F_arg}\n\
-		grep -v '^#' ${peaks_txt} | awk -v OFS='\t' '{print \$2,\$3,\$4,\$1,\$8,\$5}' | bedtools sort > ${peaks_bed} \n\
-		genomeCoverageBed -bga -i ${peaks_bed} -g ${2} | bedtools sort > ${bedgraph} \n\
-		bedGraphToBigWig ${bedgraph} ${2} ${bigwig}"
-		Launch
-		# Append SampleSheet
-		echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> HOMER/SampleSheet_HOMER.csv
-	done
+			# Define JOBNAME and COMMAND and launch job
+			JOBNAME="HOMER_${current_tag}"
+			COMMAND="makeTagDirectory HOMER/Tags/${current_tag} ${file} -fragLength ${S_arg} -single \n\
+			makeUCSCfile HOMER/Tags/${current_tag} -o auto \n\
+			findPeaks HOMER/Tags/${current_tag} -style ${M_arg} \
+			-o ${peaks_txt} -L ${L_arg} -C ${C_arg} \
+			-tagThreshold ${T_arg} \n\
+			grep -v '^#' ${peaks_txt} | awk -v OFS='\t' '{print \$2,\$3,\$4,\$1,\$8,\$5}' | bedtools sort > ${peaks_bed} \n\
+			genomeCoverageBed -bga -i ${peaks_bed} -g ${2} | bedtools sort > ${bedgraph} \n\
+			bedGraphToBigWig ${bedgraph} ${2} ${bigwig}"
+			Launch
+			# Append SampleSheet
+			echo ",,,,,,${current_tag}.bam,${current_tag}_peaks.bed,bed" >> HOMER/SampleSheet_HOMER.csv
+		done
+	else
+		sed 1d ${I_arg} | while IFS=',' read -r tested input; do
+			# Remove carriage return
+			tested=$(echo ${tested} | tr -d '\r')
+			input=$(echo ${input} | tr -d '\r')
+			# Initialize WAIT and JOBLIST to wait before running findPeaks
+			WAIT=''
+			JOBLIST='_'
+			
+			# Genrate tag_name by removing pathway, suffix and .bam of read files
+			tested_tag=`echo ${tested} | sed -e "s@${1}\/@@g" | sed -e 's@\.bam@@g'`
+			input_tag=`echo ${input} | sed -e "s@${1}\/@@g" | sed -e 's@\.bam@@g'`
+			# Create Peaks output directories
+			mkdir -p HOMER/Peaks/${tested_tag}_Input
+
+			# Define JOBNAME and COMMAND and launch job while append JOBLIST
+			# 1) makeTag for tested file
+			JOBNAME="HOMER_makeTag_${tested_tag}"
+			COMMAND="makeTagDirectory HOMER/Tags/${tested_tag} ${tested} -fragLength ${S_arg} -single \n\
+			makeUCSCfile HOMER/Tags/${tested_tag} -o auto"
+			JOBLIST=${JOBLIST}','${JOBNAME}
+			Launch
+
+			# 2) makeTag for input file
+			JOBNAME="HOMER_makeTag_${input_tag}"
+			COMMAND="makeTagDirectory HOMER/Tags/${input_tag} ${input} -fragLength ${S_arg} -single \n\
+			makeUCSCfile HOMER/Tags/${input_tag} -o auto"
+			JOBLIST=${JOBLIST}','${JOBNAME}
+			Launch
+
+			# 3) Peak Calling unsing both
+			WAIT=`echo ${JOBLIST} | sed -e 's@_,@-hold_jid @'`
+
+			# Set variables for the run :
+			peaks_txt=HOMER/Peaks/${tested_tag}_Input/${tested_tag}_Input_peaks.txt
+			peaks_bed=HOMER/Peaks/${tested_tag}_Input/${tested_tag}_Input_peaks.bed
+			bedgraph=HOMER/Peaks/${tested_tag}_Input/${tested_tag}_Input_peaks.bedgraph
+			bigwig=HOMER/Peaks/${tested_tag}_Input/${tested_tag}_Input_peaks.bw
+
+			JOBNAME="HOMER_Input_${tested_tag}"
+			COMMAND="findPeaks HOMER/Tags/${tested_tag} -style ${M_arg} \
+			-o ${peaks_txt} -L ${L_arg} -C ${C_arg} \
+			-tagThreshold ${T_arg} -i HOMER/Tags/${input_tag} -F ${F_arg} \n\
+			grep -v '^#' ${peaks_txt} | awk -v OFS='\t' '{print \$2,\$3,\$4,\$1,\$8,\$5}' | bedtools sort > ${peaks_bed} \n\
+			genomeCoverageBed -bga -i ${peaks_bed} -g ${2} | bedtools sort > ${bedgraph} \n\
+			bedGraphToBigWig ${bedgraph} ${2} ${bigwig}"
+			Launch
+			# Append SampleSheet
+			echo ",,,,,,${tested_tag}.bam,${tested_tag}_peaks.bed,bed" >> HOMER/SampleSheet_HOMER.csv
+		done
+	fi
 
 ## MACS2 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 elif [ ${U_arg} == 'MACS2' ]; then
