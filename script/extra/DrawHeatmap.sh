@@ -45,7 +45,7 @@ ${BOLD}OPTIONS${END}\n\
   	${BOLD}-F${END} ${UDL}string${END}, ${BOLD}F${END}ormat\n\
 		Define format for saving plot.\n\
 		Format should be 'png', 'pdf', 'eps' or 'svg'\n\
-		Default = 'png'\n\n\
+		Default = 'pdf'\n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
 	${BOLD}<output_dir>${END}\n\
@@ -72,7 +72,7 @@ S_arg='false'
 K_arg=1
 Z_arg='0,50'
 T_arg='50,8'
-F_arg='png'
+F_arg='pdf'
 
 # Change default values if another one is precised
 while getopts ":O:S:K:Z:T:F:" option; do
