@@ -243,5 +243,6 @@ plotHeatmap -m $1'/'${O_arg}'.gz' \
 -out $1'/'${O_arg}'.'${F_arg} \
 --whatToShow 'plot, heatmap and colorbar' \
 --zMin ${Z1_arg} --zMax ${Z2_arg} \
+--outFileSortedRegions $1'/'${O_arg}'_plotted.bed' \
 ${K_arg}"
 Launch
