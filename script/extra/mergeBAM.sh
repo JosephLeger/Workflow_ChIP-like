@@ -180,12 +180,12 @@ if [ ${A_arg} == 'None' ]; then
 		fi
 	done
 else
-## MERGE UNIQUE BAM - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-	# Initialize $list_files to store filenames to merge
-	list_files=`ls ${1}/*${N_arg}*.bam`
+## MERGE UNIQUE BAM - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Initialize $list_files to store filenames to merge
+	list_files=($(find "${1}" -type f -name "*${N_arg}*.bam"))
 	# Define JOBNAME and COMMAND and launch job
 	JOBNAME="mergeBAM_${A_arg}"
-	COMMAND="samtools merge -o ${1}/${A_arg}.bam ${list_files} \n\
+	COMMAND="samtools merge -o ${1}/${A_arg}.bam ${list_files[@]} \n\
 	samtools index ${1}/${A_arg}.bam"
 	Launch
  fi
