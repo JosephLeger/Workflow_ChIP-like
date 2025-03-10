@@ -66,7 +66,7 @@ Raw FASTQ files must be compressed in '.fq.gz' or '.fastq.gz' format. If it is n
 For the following example, this type of folder tree is used :  
   
 <p align="left">
-<img src="https://github.com/JosephLeger/Workflow_ChIP-like/blob/main/img/paths.png"  width="50%" height="50%">
+<img src="https://github.com/JosephLeger/Workflow_ChIP-like/blob/main/img/paths.png"  width="60%" height="60%">
 </p>
   
 # Workflow Step by Step
