@@ -200,7 +200,7 @@ file_ext='fastq.gz'
 ## DEFINE FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CLUMPIFY_launch()
 {
-module load bbmap
+module load bbmap/39.00
 # Create output directory
 outdir='Trimmed/Clumpify'
 mkdir -p ${outdir}
