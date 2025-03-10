@@ -89,8 +89,25 @@ Syntax : ```sh 1_QC.sh <input_dir>```
 ```bash
 sh 1_QC.sh Raw
 ```
+Pooled results are available in ./QC/MultiQC/QC_Raw_MultiQC.html file.  
 
 ### 2. Trimming
+If low quality bases or adapter enrichment is detected, you will need to perform trimming step.  
+Provided trimming script allows several options using either **Trimmomatic** (```-U Trimmomatic```), **Clumpify** (```-U Clumpify```) or both (```-U Both```).  
+#### Trimmomatic options
+* **-S** (Slingdingwindow) : Perform a sliding window trimming, cutting once the average quality within the window falls below a threshold.  
+* **-L** (Leading) : Remove low quality bases from the beginning.  
+* **-T** (Trailing) : Remove low quality bases from the end.   
+* **-M** (Minlen) : This module removes reads that fall below the specified minimal length.  
+* **-I** (Illuminaclip) : Cuts adapters and other Illumina-specific sequences present in the reads.
+  
+*For more details, please read [Trimmomatic Manual](http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf).*  
+
+#### Clumpify option
+* **-D** (Deduplicate) : Remove duplicated reads.  
+  
+*Clumpify will also optimize file organization, reducing file size.*  
+  
 Syntax : ```sh 2_Trim.sh [options] <SE|PE> <input_dir>```  
 ```bash
 sh 2_Trim.sh -U 'Both' -S 4:15 -L 5 -T 5 -M 36 -I ../Ref/Trimmomatic/TruSeq3-SE_NexteraPE-PE.fa:2:30:10 -D True SE Raw
