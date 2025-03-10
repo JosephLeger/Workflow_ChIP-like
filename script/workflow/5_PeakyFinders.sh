@@ -331,8 +331,8 @@ if [ ${U_arg} == 'HOMER' ]; then
 
 ## MACS2 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 elif [ ${U_arg} == 'MACS2' ]; then
-	module load gcc
-	module load macs2
+	module load gcc/11.2.0
+	module load macs2/2.2.7.1
 	# Create Tags output directories
 	mkdir -p MACS2/Peaks
 	# Initialize SampleSheet
