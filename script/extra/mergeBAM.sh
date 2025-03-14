@@ -18,7 +18,7 @@ Help()
 {
 echo -e "${BOLD}####### MERGEBAM MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-	sh ${script_name} [options] <input_dir> <sheet_sample.csv>\n\n\
+	sh ${script_name} [options] <input_dir> <sample_list.csv>\n\n\
 
 ${BOLD}DESCRIPTION${END}\n\
 	Merge BAM files matching a pattern into a unique BAM file and index it using samtools.\n\
@@ -41,14 +41,14 @@ ${BOLD}ARGUMENTS${END}\n\
 	${BOLD}<input_dir>${END}\n\
 		Directory containing .bam files to process.\n\
 		It usually corresponds to 'Mapped/<model>/BAM'.\n\n\
-	${BOLD}<sheet_sample.csv>${END}\n\
+	${BOLD}<sample_list.csv>${END}\n\
 		Path to .csv files containing sample information stored in 3 columns : 
   			1) File_ID [not used by this script]
      			2) Filename (unique patterns to identify used files) 
 			3) Condition (files sharing the same Condition will be merged together)\n\n\
    		
 ${BOLD}EXAMPLE USAGE${END}\n\
-	sh ${script_name} ${BOLD}-N${END} _sorted_filtered ${BOLD}-R${END} true ${BOLD}Mapped/mm39/BAM ../SampleSheet.csv${END}\n"
+	sh ${script_name} ${BOLD}-N${END} _sorted_filtered ${BOLD}-R${END} true ${BOLD}Mapped/mm39/BAM ../SampleList.csv${END}\n"
 }
 
 ################################################################################################################
