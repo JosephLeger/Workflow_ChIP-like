@@ -14,9 +14,9 @@ It is deliberately not automated, and requires launching the scripts manually on
 
 1. **Quality Check :** Quality of each FASTQ file is assessed using **FastQC**. A quality control report per file is then obtained, providing information on the quality of the bases, the length of the reads, the presence of adapters, etc. To make it easier to visualize the results, all reports are then pooled and analyzed simultaneously using **MultiQC**.
 
-2. **Trimming :** According to the conclusions drawn from the quality control of the reads, a trimming step is often necessary. This step makes it possible to clean the reads, for example by eliminating sequences enriched in adapters, or by trimming poor quality bases at the ends of the reads. For this, **Trimmomatic** needs to be provided with the adapter sequences used for sequencing if an enrichment has been detected.  
+2. **Trimming :** According to the conclusions drawn from the quality control of the reads, a trimming step is often necessary. This step makes it possible to clean the reads, for example by eliminating sequences enriched in adapters, or by trimming poor quality bases at the ends of the reads. For this, **Trimmomatic** needs to be provided with the adapter sequences used for sequencing if an enrichment has been detected. Trimming script includes the optional use of **Clumpify** (bbmap) to remove duplicated reads at FASTQ stage and to optimize file organization.  
 A quality control is carried out on the FASTQ files resulting from trimming to ensure that the quality obtained is satisfactory.
-Trimming script includes the optional use of **Clumpify** (bbmap) to remove duplicated reads at FASTQ stage and to optimize file organization.  
+
 
 3. **Alignment to the genome :** Clean FASTQ files are then mapped to the previously indexed reference genome in order to identify the regions from which the reads come. This workflow uses **Bowtie2**, a widely used tool for read mapping, to generate sorted BAM files.  
 
