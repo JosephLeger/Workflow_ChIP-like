@@ -18,7 +18,7 @@ It is deliberately not automated, and requires launching the scripts manually on
 A quality control is carried out on the FASTQ files resulting from trimming to ensure that the quality obtained is satisfactory.
 
 3. **Alignment to the genome :** Clean FASTQ files are then mapped to the previously indexed reference genome in order to identify the regions from which the reads come. This workflow uses **Bowtie2**, a widely used tool for read mapping, to generate sorted BAM files.  
-A quality control is carried out on the BAM files resulting from alignment to ensure reads have been correctly mapped.  
+A quality control is carried out on the BAM files resulting from alignment to ensure reads were correctly mapped.  
 
 4. **Filtering and Indexing BAM :** If it hasn't already been done duplicated reads are removed, and reads with low alignment scores are filtered out using **Picard** and **SamTools**. Resulting BAM files are then indexed for following steps.  
 
@@ -118,7 +118,11 @@ Syntax : ```sh 3_Bowtie2.sh [options] <SE|PE> <input_dir> <refindex>```
 ```bash
 sh 3_Bowtie2.sh SE Trimmed/Trimmomatic ../Ref/refdata-Bowtie2-mm39/mm39
 ```
-*Note : after mapping, launch QC step again to look at proportion of correctly mapped reads.*
+
+Perform a quality check after alignment to ensure reads were correctly mapped.  
+```bash
+sh 1_QC.sh Mapped/mm39/BAM
+```
 
 ### 4. Filtering and indexing BAM
 Syntax : ```sh 4_BowtieCheck.sh [options] <input_dir1> <...>```  
