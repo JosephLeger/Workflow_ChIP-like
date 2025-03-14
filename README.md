@@ -118,6 +118,7 @@ Syntax : ```sh 3_Bowtie2.sh [options] <SE|PE> <input_dir> <refindex>```
 ```bash
 sh 3_Bowtie2.sh SE Trimmed/Trimmomatic ../Ref/refdata-Bowtie2-mm39/mm39
 ```
+*Note : QC script can also be applied to check mapping efficiency.*
 
 ### 4. Filtering and indexing BAM
 Syntax : ```sh 4_BowtieCheck.sh [options] <input_dir1> <...>```  
