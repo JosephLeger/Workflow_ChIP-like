@@ -165,6 +165,7 @@ sh 1_QC.sh Trimmed/Trimmomatic
 
 # Mapping to genome
 sh 3_Bowtie2.sh SE Trimmed/Trimmomatic ../Ref/refdata-Bowtie2-mm39/mm39
+sh 1_QC.sh Mapped/mm39/BAM
 # Filtering
 sh 4_BowtieCheck.sh -T 10 Mapped/mm39/BAM 
 
