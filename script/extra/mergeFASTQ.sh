@@ -18,7 +18,7 @@ Help()
 {
 echo -e "${BOLD}####### MERGEFASTQ MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-	sh mergeFastq.sh <input_dir> <file_table>\n\n\
+	sh mergeFastq.sh <input_dir> <file_table.csv>\n\n\
 ${BOLD}DESCRIPTION${END}\n\
 \n\n\
 
