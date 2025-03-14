@@ -18,21 +18,21 @@ Help()
 {
 echo -e "${BOLD}####### MERGEFASTQ MANUAL #######${END}\n\n\
 ${BOLD}SYNTHAX${END}\n\
-	sh mergeFastq.sh <input_dir> <sample_list>\n\n\
+	sh mergeFastq.sh <input_dir> <file_table>\n\n\
 ${BOLD}DESCRIPTION${END}\n\
 \n\n\
 
 ${BOLD}ARGUMENTS${END}\n\
 	${BOLD}<input_dir>${END}\n\
 		Directory containing FASTQ files to merge.\n\
-	${BOLD}<sample_list.csv>${END}\n\
+	${BOLD}<file_table.csv>${END}\n\
 		Path to .csv files containing sample information stored in 3 columns : 
   			1) File_ID (unique patterns to identify raw files) 
      			2) Filename (used as filenames for merged files) 
 			3) Condition [not used by this script]\n\n\
 
 ${BOLD}EXAMPLE USAGE${END}\n\
-	sh ${script_name} Raw SampleList.csv\n"   
+	sh ${script_name} Raw FileTable.csv\n"   
 }
 
 ################################################################################################################
