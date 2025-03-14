@@ -48,7 +48,7 @@ ${BOLD}ARGUMENTS${END}\n\
 			3) Condition (files sharing the same Condition will be merged together)\n\n\
    		
 ${BOLD}EXAMPLE USAGE${END}\n\
-	sh ${script_name} ${BOLD}-N${END} _sorted_filtered ${BOLD}-R${END} true ${BOLD}Mapped/mm39/BAM ../SRA_SampleLists.csv${END}\n"
+	sh ${script_name} ${BOLD}-N${END} _sorted_filtered ${BOLD}-R${END} true ${BOLD}Mapped/mm39/BAM ../SampleSheet.csv${END}\n"
 }
 
 ################################################################################################################
