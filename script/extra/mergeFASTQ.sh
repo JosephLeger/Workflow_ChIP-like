@@ -26,7 +26,7 @@ ${BOLD}ARGUMENTS${END}\n\
 	${BOLD}<input_dir>${END}\n\
 		Directory containing FASTQ files to merge.\n\
 	${BOLD}<file_table.csv>${END}\n\
-		Path to .csv files containing sample information stored in 3 columns : 
+		Path to .csv files containing files information stored in 3 columns : 
   			1) File_ID (unique patterns to identify raw files) 
      			2) Filename (used as filenames for merged files) 
 			3) Condition [not used by this script]\n\n\
