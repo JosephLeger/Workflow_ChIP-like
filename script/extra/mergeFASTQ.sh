@@ -25,7 +25,7 @@ ${BOLD}DESCRIPTION${END}\n\
 ${BOLD}ARGUMENTS${END}\n\
 	${BOLD}<input_dir>${END}\n\
 		Directory containing FASTQ files to merge.\n\
-	${BOLD}<sheet_sample.csv>${END}\n\
+	${BOLD}<sample_list.csv>${END}\n\
 		Path to .csv files containing sample information stored in 3 columns : 
   			1) File_ID (unique patterns to identify raw files) 
      			2) Filename (used as filenames for merged files) 
