@@ -28,7 +28,7 @@ Trimming script includes the optional use of **Clumpify** (bbmap) to remove dupl
 
 7. **Association Motif-Peaks :** This extra step can be launched to identify potential interactions between a factor and genomic regions. From peak calling results and a provided motif file, **HOMER** will generate a fully annotated peak table adding information to the peaks near which the motif appears in an additional column.  
 
-
+*Supplementary scripts are also available in ./scripts/extra folder of this repository*
 
 # Initialization and recommandations
 ### Scripts
