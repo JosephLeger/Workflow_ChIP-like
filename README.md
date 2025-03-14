@@ -66,7 +66,32 @@ For the following example, this type of folder tree is used :
 <p align="left">
 <img src="https://github.com/JosephLeger/Workflow_ChIP-like/blob/main/img/paths.png"  width="55%" height="55%">
 </p>
-  
+
+# Workflow in a Nutshell
+```bash
+# Quality Check
+sh 1_QC.sh Raw
+# Trimming and duplicate removal
+sh 2_Trim.sh -U 'Both' -S 4:15 -L 5 -T 5 -M 36 -I ../Ref/Trimmomatic/TruSeq3-SE_NexteraPE-PE.fa:2:30:10 -D True SE Raw
+# Quality Check
+sh 1_QC.sh Trimmed/Trimmomatic
+
+# Mapping to genome
+sh 3_Bowtie2.sh SE Trimmed/Trimmomatic ../Ref/refdata-Bowtie2-mm39/mm39
+sh 1_QC.sh Mapped/mm39/BAM
+# Filtering
+sh 4_BowtieCheck.sh -T 10 Mapped/mm39/BAM 
+
+# Peak calling using HOMER
+sh 5_PeakyFinders.sh -U 'HOMER' -M factor Mapped/mm39/BAM ../Ref/Genome/mm39.chrom.sizes
+# Peak calling using MACS2
+sh 5_PeakyFinders.sh -U 'MACS2' Mapped/mm39/BAM ../Ref/Genome/mm39.chrom.sizes
+
+# Peak and motifs annotation
+sh 6_Annotate.sh HOMER/Peaks ../Ref/Genome/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa ../Ref/Genome/Mus_musculus.GRCm39.108.gtf
+sh 7_WinPeaks.sh HOMER/Peaks ../Ref/Genome/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa ../Ref/Genome/Mus_musculus.GRCm39.108.gtf ../Ref/Motifs/FACTOR.motif
+```
+
 # Workflow Step by Step
 ### 0. Preparing the reference
 This step only needs to be carried out during the first alignment. The genome once indexed can be reused as a reference for subsequent alignments.  
@@ -153,30 +178,3 @@ Syntax : ```sh 7_WinPeaks.sh [options] <input_dir> <FASTA> <GTF> <MOTIF>```
 ```bash
 sh 7_WinPeaks.sh -F bed ./HOMER/Peaks ../Ref/Genome/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa ../Ref/Genome/Mus_musculus.GRCm39.108.gtf ../Ref/Motifs/FACTOR.motif
 ```
-  
-# Workflow in a Nutshell
-```bash
-# Quality Check
-sh 1_QC.sh Raw
-# Trimming and duplicate removal
-sh 2_Trim.sh -U 'Both' -S 4:15 -L 5 -T 5 -M 36 -I ../Ref/Trimmomatic/TruSeq3-SE_NexteraPE-PE.fa:2:30:10 -D True SE Raw
-# Quality Check
-sh 1_QC.sh Trimmed/Trimmomatic
-
-# Mapping to genome
-sh 3_Bowtie2.sh SE Trimmed/Trimmomatic ../Ref/refdata-Bowtie2-mm39/mm39
-sh 1_QC.sh Mapped/mm39/BAM
-# Filtering
-sh 4_BowtieCheck.sh -T 10 Mapped/mm39/BAM 
-
-# Peak calling using HOMER
-sh 5_PeakyFinders.sh -U 'HOMER' -M factor Mapped/mm39/BAM ../Ref/Genome/mm39.chrom.sizes
-# Peak calling using MACS2
-sh 5_PeakyFinders.sh -U 'MACS2' Mapped/mm39/BAM ../Ref/Genome/mm39.chrom.sizes
-
-# Peak and motifs annotation
-sh 6_Annotate.sh HOMER/Peaks ../Ref/Genome/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa ../Ref/Genome/Mus_musculus.GRCm39.108.gtf
-sh 7_WinPeaks.sh HOMER/Peaks ../Ref/Genome/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa ../Ref/Genome/Mus_musculus.GRCm39.108.gtf ../Ref/Motifs/FACTOR.motif
-```
-
-
