@@ -33,7 +33,6 @@ ${BOLD}ARGUMENTS${END}\n\
 
 ${BOLD}EXAMPLE USAGE${END}\n\
 	sh ${script_name} Raw SampleList.csv\n"   
-
 }
 
 ################################################################################################################
