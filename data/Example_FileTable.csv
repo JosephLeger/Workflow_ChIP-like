@@ -1,4 +1,4 @@
-File_ID,Info,Condition
+File_ID,Filename,Condition
 SRR00000001,LTpos_2D_rep1,Condition_2D
 SRR00000002,LTpos_2D_rep2,Condition_2D
 SRR00000003,LTpos_2D_rep3,Condition_2D
