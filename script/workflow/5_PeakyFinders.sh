@@ -211,7 +211,7 @@ elif [ $(ls $1/*${N_arg}*.${file_ext} 2>/dev/null | wc -l) -lt 1 ]; then
 	# Error if provided directory is empty or does not exists
 	echo "Error : can not find files to process in provided directory. Please make sure the provided input directory exists, and contains matching .${file_ext} files."
 	exit
-elif [ ${I_arg} != "None" ] && [ $(ls ${I_arg} 2>/dev/null | wc -l) -lt 1 ]; then
+elif [ ${U_arg} == 'HOMER' ] && [ ${I_arg} != "None" ] && [ $(ls ${I_arg} 2>/dev/null | wc -l) -lt 1 ]; then
 	# Error if provided argument for I_arg is not found
 	echo "Error : can not find provided input sheet file. Please make sure the provided file exists."
 	exit
