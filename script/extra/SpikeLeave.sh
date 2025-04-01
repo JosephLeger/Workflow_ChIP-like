@@ -125,12 +125,12 @@ WAIT=''
 
 ## PREPARE INPUT FILES - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Initialize required variables
-tmp_scale="$(dirname ${stat_ref})"/tmp_scaleFactor.csv
+tmp_scale="$(dirname ${1})"/tmp_scaleFactor.csv
 new_vec=()
 max=0
 
 # Read all lines in provided spike stat file
-sed 1d ${stat_spike} | (while IFS=',' read -r file depth mono multi total rate; do
+sed 1d ${2} | (while IFS=',' read -r file depth mono multi total rate; do
 	# Define max value and append new vector corresponding to spike-in percentage
 	val=`echo ${rate} | sed -e 's@\%@@g'`
 	if (( $(echo "${val} > ${max}" |bc -l) )); then
@@ -147,13 +147,13 @@ for i in ${new_vec[@]}; do
 	echo "${factor}" >> ${tmp_scale}
 done
 # Creates a new file containing merged columns of interest from both ref and ppike Summary_Stats files
-paste -d',' ${stat_ref} ${stat_spike} ${tmp_scale} | cut -f1,2,3,4,5,6,9,10,11,12,13 -d','> ${O_arg}
+paste -d',' ${1} ${2} ${tmp_scale} | cut -f1,2,3,4,5,6,9,10,11,12,13 -d','> ${O_arg}
 )
 
 ## SPIKE IN NORMALIZATION - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Create output directory
-outdir_bdg="$(dirname $(dirname ${stat_ref}))"/BEDGRAPH
-outdir_bw="$(dirname $(dirname ${stat_ref}))"/BIGWIG
+outdir_bdg="$(dirname $(dirname ${1}))"/BEDGRAPH
+outdir_bw="$(dirname $(dirname ${1}))"/BIGWIG
 mkdir -p ${outdir_bdg}
 mkdir -p ${outdir_bw}
 
