@@ -31,7 +31,7 @@ ${BOLD}OPTIONS${END}\n\n\
 	${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
 		Define a suffix that input files must share to be considered. Allows to exclude BAM files that are unfiltered or unwanted.\n\
 		Default = '_filtered'\n\n\
-	${BOLD}-O${END} ${UDL}path${END}, ${BOLD}SO${END}utputFIlename\n\
+	${BOLD}-O${END} ${UDL}path${END}, ${BOLD}O${END}utputFIlename\n\
 		Define file name and path of final summarized stat file.\n\
 		Default = <stat_ref_directory>/'Complete_Summary_Stats.csv'\n\n\
 
@@ -60,7 +60,7 @@ while getopts ":N:O:" option; do
 	case $option in
 		N) # NAME OF FILE (SUFFIX)
 			N_arg=${OPTARG};;
-		O) # USED TOOL FOR PEAK CALLING
+		O) # OUTPUT FILE
 			O_arg=${OPTARG};;
 		\?) # Error
 			echo "Error : invalid option"
