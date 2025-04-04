@@ -51,11 +51,11 @@ bowtie2                     2.5.1
 samtools                    1.15.1
 picard                      2.23.5
 bedtools                    2.30.0
+deeptools                   3.5.0
 ucsc-bedgraphtobigwig       377
 gcc                         11.2.0
 macs2                       2.2.7.1
 homer                       4.11
-deeptools                   3.5.0
 ```
 
 ### Project directory
