@@ -44,7 +44,7 @@ ${BOLD}ARGUMENTS${END}\n\
 		It usually corresponds to 'Mapped/<model>/STAT/Summary_Stats_<spike>.csv'.\n\n\
     
 ${BOLD}EXAMPLE USAGE${END}\n\
-	sh ${script_name} ${BOLD}-N${END} '_spiked' ${BOLD}Mapped/mm39/STAT/Summary_Stats_mm39.csv Mapped/mm39/STAT/Summary_Stats_ecoli.csv${END}\n"
+	sh ${script_name} ${BOLD}-N${END} '_spiked' ${BOLD}Mapped/mm39/STAT/Summary_Stats_mm39.csv Mapped/ecoli/STAT/Summary_Stats_ecoli.csv${END}\n"
 }
 
 ################################################################################################################
