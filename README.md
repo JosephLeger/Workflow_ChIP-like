@@ -55,6 +55,7 @@ ucsc-bedgraphtobigwig       377
 gcc                         11.2.0
 macs2                       2.2.7.1
 homer                       4.11
+deeptools                   3.5.0
 ```
 
 ### Project directory
