@@ -178,25 +178,42 @@ fi
 ################################################################################################################
 
 ## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module load deeptools
-module load bedtools/2.30.0
-
 # Generate REPORT
 echo '#' >> ./0K_REPORT.txt
 date >> ./0K_REPORT.txt
 
 Launch()
 {
-# Launch COMMAND and save report
-echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n""${COMMAND}" | qsub -N "${JOBNAME}" ${WAIT}
-echo -e "${JOBNAME}" >> ./0K_REPORT.txt
+# Launch COMMAND while getting JOBID
+JOBID=$(echo -e "#!/bin/bash \n\
+#SBATCH --job-name=${JOBNAME} \n\
+#SBATCH --output=%x_%j.out \n\
+#SBATCH --error=%x_%j.err \n\
+#SBATCH --time=${TIME} \n\
+#SBATCH --nodes=${NODE} \n\
+#SBATCH --ntasks=${TASK} \n\
+#SBATCH --cpus-per-task=${CPU} \n\
+#SBATCH --mem=${MEM} \n\
+#SBATCH --qos=${QOS} \n\
+source /home/${usr}/.bashrc \n\
+micromamba activate Workflow_ChIP-like \n""${COMMAND}" | sbatch --parsable --clusters nautilus ${WAIT})
+# Define JOBID and print launching message
+JOBID=`echo ${JOBID} | sed -e "s@;.*@@g"` 
+echo "Submitted batch job ${JOBID} on cluster nautilus"
+# Fill in 0K_REPORT file
+echo -e "${JOBNAME}_${JOBID}" >> ./0K_REPORT.txt
 echo -e "${COMMAND}" | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
+# Define default waiting list for sbatch as empty
 WAIT=''
 
 ## SORT BED - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Set up parameters for SLURM ressources
+TIME='0-00:10:00'; NODE='1'; TASK='1'; CPU='1'; MEM='5g'; QOS='quick'
 
 if [ ${S_arg} == 'true' ]; then
+	# Initialize JOBLIST for WAIT
+	JOBLIST='_'
 	# Precise to eliminate empty lists for the loop
 	shopt -s nullglob
 	for b in ${bedfiles}; do	
@@ -211,7 +228,7 @@ if [ ${S_arg} == 'true' ]; then
 		touch ${output}\n\
 		bedtools sort -i ${b} > ${output}"
 		Launch
-		WAIT=`echo "-hold_jid ${JOBNAME}"`
+		JOBLIST=${JOBLIST}':'${JOBID}
 	done
 	sorted_bedfiles=`echo ${bedfiles} | sed -e 's@\.bed@_sorted\.bed@g'`
 else
@@ -219,6 +236,11 @@ else
 fi
 
 ## MATRIX COMPUTATION AND HEATMAP- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set up parameters for SLURM ressources
+TIME='0-00:30:00'; NODE='1'; TASK='1'; CPU='4'; MEM='2g'; QOS='quick'
+
+# Initialize WAIT based on JOBLIST (empty or not)
+WAIT=`echo ${JOBLIST} | sed -e 's@_@-d afterany@'`
 
 # Set provided BW files as a single string
 bw_list=''
