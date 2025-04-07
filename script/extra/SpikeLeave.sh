@@ -29,10 +29,6 @@ ${BOLD}DESCRIPTION${END}\n\
 	It creates new folders './Mapped/<ref_model>/BEDGRAPH' and './Mapped/<ref_model>/BW' in which output files are stored.\n\n\
 
 ${BOLD}OPTIONS${END}\n\n\
-	${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
-		Define a suffix that input files must share to be considered. Allows to exclude BAM files that are unfiltered or unwanted.\n\
-  		WARNING : for this precise script, -N argument has to be the entire suffix preceding '.bam' in filenames.\n\
-		Default = '_sorted'\n\n\
 	${BOLD}-O${END} ${UDL}path${END}, ${BOLD}O${END}utputFIlename\n\
 		Define file name and path of final summarized stat file.\n\
 		Default = <stat_ref_directory>/'Complete_Summary_Stats.csv'\n\n\
@@ -46,7 +42,7 @@ ${BOLD}ARGUMENTS${END}\n\
 		It usually corresponds to 'Mapped/<model>/STAT/Summary_Stats_<spike>.csv'.\n\n\
     
 ${BOLD}EXAMPLE USAGE${END}\n\
-	sh ${script_name} ${BOLD}-N${END} '_spiked' ${BOLD}Mapped/mm39/STAT/Summary_Stats_mm39.csv Mapped/ecoli/STAT/Summary_Stats_ecoli.csv${END}\n"
+	sh ${script_name} ${BOLD}-O${END} Mapped/mm39/STAT/Complete_Summary_Stats.csv ${BOLD}Mapped/mm39/STAT/Summary_Stats_mm39.csv Mapped/ecoli/STAT/Summary_Stats_ecoli.csv${END}\n"
 }
 
 ################################################################################################################
@@ -54,14 +50,11 @@ ${BOLD}EXAMPLE USAGE${END}\n\
 ################################################################################################################
 
 # Set default values
-N_arg='_sorted'
 O_arg='none'
 
 # Change default values if another one is precised
-while getopts ":N:O:" option; do
+while getopts ":O:" option; do
 	case $option in
-		N) # NAME OF FILE (SUFFIX)
-			N_arg=${OPTARG};;
 		O) # OUTPUT FILE
 			O_arg=${OPTARG};;
 		\?) # Error
@@ -72,7 +65,7 @@ while getopts ":N:O:" option; do
 	esac
 done
 
-# Deal with options [-N|-O] and arguments [$1|$2]
+# Deal with options [-O] and arguments [$1|$2]
 shift $((OPTIND-1))
 
 # Checking if provided option values are correct
@@ -162,12 +155,11 @@ mkdir -p ${outdir_bw}
 # Read all lines in previously generated final stat file
 sed 1d ${O_arg} | (while IFS=',' read -r file depth mono_r multi_r total_r rate_r mono_s multi_s total_s rate_s scaleFactor; do
 	# Set variables for jobname
-	true_file=`echo ${file} | sed -e "s@\.bam@${N_arg}\.bam@g"`
-	current_file=`echo ${true_file} | sed -e "s@.*\/@@g" | sed -e 's@\.bam@@g'`
+	current_file=`echo ${file} | sed -e "s@.*\/@@g" | sed -e 's@\.bam@@g'`
 	# Define JOBNAME and COMMAND and launch job
 	JOBNAME="SpikeLeave_${current_file}"
-	COMMAND="bamCoverage --scaleFactor ${scaleFactor} --outFileFormat 'bedgraph' -b ${true_file} -o ${outdir_bdg}'/'${current_file}_spiked.bedgraph\n\
-	bamCoverage --scaleFactor ${scaleFactor} --outFileFormat 'bigwig' -b ${true_file} -o ${outdir_bw}'/'${current_file}_spiked.bw"
+	COMMAND="bamCoverage --scaleFactor ${scaleFactor} --outFileFormat 'bedgraph' -b ${file} -o ${outdir_bdg}'/'${current_file}_spiked.bedgraph\n\
+	bamCoverage --scaleFactor ${scaleFactor} --outFileFormat 'bigwig' -b ${file} -o ${outdir_bw}'/'${current_file}_spiked.bw"
 	Launch
 done
 )
