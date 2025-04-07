@@ -187,20 +187,35 @@ date >> ./0K_REPORT.txt
 
 Launch()
 {
-# Launch COMMAND and save report
-echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n""${COMMAND}" | qsub -N "${JOBNAME}" ${WAIT}
-echo -e "${JOBNAME}" >> ./0K_REPORT.txt
+# Launch COMMAND while getting JOBID
+JOBID=$(echo -e "#!/bin/bash \n\
+#SBATCH --job-name=${JOBNAME} \n\
+#SBATCH --output=%x_%j.out \n\
+#SBATCH --error=%x_%j.err \n\
+#SBATCH --time=${TIME} \n\
+#SBATCH --nodes=${NODE} \n\
+#SBATCH --ntasks=${TASK} \n\
+#SBATCH --cpus-per-task=${CPU} \n\
+#SBATCH --mem=${MEM} \n\
+#SBATCH --qos=${QOS} \n\
+source /home/${usr}/.bashrc \n\
+micromamba activate Workflow_ChIP-like \n""${COMMAND}" | sbatch --parsable --clusters nautilus ${WAIT})
+# Define JOBID and print launching message
+JOBID=`echo ${JOBID} | sed -e "s@;.*@@g"` 
+echo "Submitted batch job ${JOBID} on cluster nautilus"
+# Fill in 0K_REPORT file
+echo -e "${JOBNAME}_${JOBID}" >> ./0K_REPORT.txt
 echo -e "${COMMAND}" | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
+# Define default waiting list for sbatch as empty
 WAIT=''
-
-# Set default file extention
-file_ext='fastq.gz'
 
 ## DEFINE FUNCTIONS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CLUMPIFY_launch()
 {
-module load bbmap/39.00
+# Set up parameters for SLURM ressources
+TIME='0-00:30:00'; NODE='1'; TASK='1'; CPU='2'; MEM='100g'; QOS='quick'
+
 # Create output directory
 outdir='Trimmed/Clumpify'
 mkdir -p ${outdir}
@@ -213,11 +228,11 @@ if [ ${1} == "SE" ]; then
 	for i in ${2}/*.fastq.gz ${2}/*.fq.gz; do
 		# Set variables for jobname
 		current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
-		# Define JOBNAME and COMMAND and launch job
+		# Define JOBNAME and COMMAND and launch job while append JOBID to JOBLIST
 		JOBNAME="Clumpify_${current_file}"
 		COMMAND="clumpify.sh in=${i} out=${outdir}/${current_file}_Clum.fastq.gz dedupe=${D_arg} subs=0"
-		JOBLIST=${JOBLIST}','${JOBNAME}
 		Launch
+		JOBLIST=${JOBLIST}':'${JOBID}
 	done
 elif [ ${1} == "PE" ]; then
 	# Precise to eliminate empty lists for the loop
@@ -231,22 +246,24 @@ elif [ ${1} == "PE" ]; then
 		current_R1=`echo $i | sed -e "s@${2}\/@@g" | sed -e 's@\.fastq\.gz\|\.fq\.gz@@g'`
 		current_R2=`echo ${current_R1} | sed -e 's/_R1/_R2/g'`
 		current_pair=`echo ${current_R1} | sed -e 's@_R1@@g'`
-		# Define JOBNAME and COMMAND and launch job
+		# Define JOBNAME and COMMAND and launch job while append JOBID to JOBLIST
 		JOBNAME="Clumpify_${current_pair}"
 		COMMAND="clumpify.sh in=${R1} in2=${R2} out=${outdir}/${current_R1}_Clum.fastq.gz out2=${outdir}/${current_R2}_Clum.fastq.gz dedupe=${D_arg} subs=0"
-		JOBLIST=${JOBLIST}','${JOBNAME}
   		Launch
+		JOBLIST=${JOBLIST}':'${JOBID}
 	done
 fi
 }
 
 TRIMMOMATIC_launch()
 {
+# Set up parameters for SLURM ressources
+TIME='0-00:30:00'; NODE='1'; TASK='1'; CPU='4'; MEM='2g'; QOS='quick'
 # Create output directory
 outdir='Trimmed/Trimmomatic'
 mkdir -p ${outdir}
-# Initialize WAIT based on JOBLIST (empty or not)
-WAIT=`echo ${JOBLIST} | sed -e 's@_,@-hold_jid @'`
+# Set default file extention
+file_ext='fastq.gz'
 if [ ${1} == "SE" ]; then
 	# Precise to eliminate empty lists for the loop
 	shopt -s nullglob
@@ -258,9 +275,8 @@ if [ ${1} == "SE" ]; then
 		current_file=`echo $i | sed -e "s@${2}\/@@g" | sed -e "s@\.${file_ext}@@g"`
 		# Define JOBNAME and COMMAND and launch job
 		JOBNAME="Trim_${1}_${current_file}"
-		COMMAND="conda activate base \n\
-		conda activate Trimmomatic \n\
-		trimmomatic ${1} -threads 4 ${indir_2}/${current_file}${suffix}.${file_ext} \
+		COMMAND="trimmomatic ${1} -threads 4 \
+		${indir_2}/${current_file}${suffix}.${file_ext} \
 		${outdir}/${current_file}${suffix}"_Trimmed.fastq.gz" ${I_arg}\
 		SLIDINGWINDOW:${S_arg} \
 		LEADING:${L_arg} \
@@ -285,8 +301,8 @@ elif [ ${1} == "PE" ]; then
 		current_pair=`echo ${current_R1} | sed -e 's@_R1@@g'`
 		# Define JOBNAME and COMMAND and launch job
 		JOBNAME="Trim_${1}_${current_pair}"
-		COMMAND="conda activate Trimmomatic \n\
-		trimmomatic ${1} -threads 4 ${indir_2}/${current_R1}${suffix}.${file_ext} ${indir_2}/${current_R2}${suffix}.${file_ext} \
+		COMMAND="trimmomatic ${1} -threads 4 \
+		${indir_2}/${current_R1}${suffix}.${file_ext} ${indir_2}/${current_R2}${suffix}.${file_ext} \
 		${outdir}/Paired/${current_R1}${suffix}_Trimmed_Paired.fastq.gz \
 		${outdir}/Unpaired/${current_R1}${suffix}_Trimmed_Unpaired.fastq.gz \
 		${outdir}/Paired/${current_R2}${suffix}_Trimmed_Paired.fastq.gz \
@@ -307,5 +323,7 @@ elif [ $U_arg == "Trimmomatic" ]; then
 	TRIMMOMATIC_launch $1 $2
 elif [ $U_arg == "Both" ]; then
 	CLUMPIFY_launch $1 $2
+	# Initialize WAIT based on JOBLIST (empty or not)
+	WAIT=`echo ${JOBLIST} | sed -e 's@_@-d afterany@'`
 	TRIMMOMATIC_launch $1 $2
 fi
