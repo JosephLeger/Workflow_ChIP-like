@@ -209,7 +209,7 @@ WAIT=''
 
 ## SORT BED - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Set up parameters for SLURM ressources
-TIME='0-00:10:00'; NODE='1'; TASK='1'; CPU='1'; MEM='5g'; QOS='quick'
+TIME='0-00:10:00'; NODE='1'; TASK='1'; CPU='1'; MEM='2g'; QOS='quick'
 
 if [ ${S_arg} == 'true' ]; then
 	# Initialize JOBLIST for WAIT
@@ -237,7 +237,7 @@ fi
 
 ## MATRIX COMPUTATION AND HEATMAP- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set up parameters for SLURM ressources
-TIME='0-00:30:00'; NODE='1'; TASK='1'; CPU='4'; MEM='2g'; QOS='quick'
+TIME='0-00:30:00'; NODE='1'; TASK='1'; CPU='4'; MEM='5g'; QOS='quick'
 
 # Initialize WAIT based on JOBLIST (empty or not)
 WAIT=`echo ${JOBLIST} | sed -e 's@_@-d afterany@'`
