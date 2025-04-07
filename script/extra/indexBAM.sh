@@ -102,58 +102,52 @@ fi
 ################################################################################################################
 
 ## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module load samtools/1.15.1
-
 # Generate REPORT
 echo '#' >> ./0K_REPORT.txt
 date >> ./0K_REPORT.txt
 
 Launch()
 {
-# Launch COMMAND and save report
-echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n""${COMMAND}" | qsub -N "${JOBNAME}" ${WAIT}
-echo -e "${JOBNAME}" >> ./0K_REPORT.txt
+# Launch COMMAND while getting JOBID
+JOBID=$(echo -e "#!/bin/bash \n\
+#SBATCH --job-name=${JOBNAME} \n\
+#SBATCH --output=%x_%j.out \n\
+#SBATCH --error=%x_%j.err \n\
+#SBATCH --time=${TIME} \n\
+#SBATCH --nodes=${NODE} \n\
+#SBATCH --ntasks=${TASK} \n\
+#SBATCH --cpus-per-task=${CPU} \n\
+#SBATCH --mem=${MEM} \n\
+#SBATCH --qos=${QOS} \n\
+source /home/${usr}/.bashrc \n\
+micromamba activate Workflow_ChIP-like \n""${COMMAND}" | sbatch --parsable --clusters nautilus ${WAIT})
+# Define JOBID and print launching message
+JOBID=`echo ${JOBID} | sed -e "s@;.*@@g"` 
+echo "Submitted batch job ${JOBID} on cluster nautilus"
+# Fill in 0K_REPORT file
+echo -e "${JOBNAME}_${JOBID}" >> ./0K_REPORT.txt
 echo -e "${COMMAND}" | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
+# Define default waiting list for sbatch as empty
 WAIT=''
 
 ## SORT BAM - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-if [ ${S_arg} == 'true' ]; then
-	module load picard/2.23.5
-	# Initialize JOBLIST to wait before running index
-	JOBLIST='_'
-	# Precise to eliminate empty lists for the loop
-	shopt -s nullglob
-	# Sort each provided file
-	for file in ${1}/*${N_arg}*.bam; do
-		# Set variables for jobname
-		current_file=`echo ${file} | sed -e "s@${1}\/@@g" | sed -e 's@\.bam@@g'`
-		output=`echo ${file} | sed -e 's@\.bam@_sorted\.bam@g'`
-		# Define JOBNAME and COMMAND and launch job while append JOBLIST
-		JOBNAME="sortBAM_${current_file}"
-		COMMAND="picard SortSam INPUT=${file} \
-		OUTPUT=${output} \
-		VALIDATION_STRINGENCY=LENIENT \
-		TMP_DIR=tmp \
-		SORT_ORDER=coordinate"
-		JOBLIST=${JOBLIST}','${JOBNAME}
-		Launch
-	done
-fi
+# Set up parameters for SLURM ressources
+TIME='0-00:30:00'; NODE='1'; TASK='1'; CPU='1'; MEM='2g'; QOS='quick'
 
-## INDEX BAM - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Initialize WAIT based on JOBLIST (empty or not)
-WAIT=`echo ${JOBLIST} | sed -e 's@_,@-hold_jid @'`
 # Precise to eliminate empty lists for the loop
 shopt -s nullglob
-# Launch index on files or files_sorted
+# Sort each provided file
 for file in ${1}/*${N_arg}*.bam; do
-	# Add suffix
- 	file=`echo ${file} | sed -e "s@\.bam@${newsuffix}\.bam@g"`
 	# Set variables for jobname
 	current_file=`echo ${file} | sed -e "s@${1}\/@@g" | sed -e 's@\.bam@@g'`
-	# Define JOBNAME and COMMAND and launch with WAIT list
+	# Define JOBNAME and COMMAND and launch job while append JOBLIST
 	JOBNAME="indexBAM_${current_file}"
-	COMMAND="samtools index ${file}"
+	if [ ${S_arg} == 'true' ]; then
+		COMMAND="samtools sort ${file} -o ${1}/${current_file}_sorted.bam \n\
+		samtools index ${1}/${current_file}_sorted.bam"
+	else
+		COMMAND="samtools index ${file}"
+	fi
 	Launch
 done
