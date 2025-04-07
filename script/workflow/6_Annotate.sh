@@ -145,20 +145,33 @@ fi
 ################################################################################################################
 
 ## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module load homer/4.11
-module load samtools/1.15.1
-
 # Generate REPORT
 echo '#' >> ./0K_REPORT.txt
 date >> ./0K_REPORT.txt
 
 Launch()
 {
-# Launch COMMAND and save report
-echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n""${COMMAND}" | qsub -N "${JOBNAME}" ${WAIT}
-echo -e "${JOBNAME}" >> ./0K_REPORT.txt
+# Launch COMMAND while getting JOBID
+JOBID=$(echo -e "#!/bin/bash \n\
+#SBATCH --job-name=${JOBNAME} \n\
+#SBATCH --output=%x_%j.out \n\
+#SBATCH --error=%x_%j.err \n\
+#SBATCH --time=${TIME} \n\
+#SBATCH --nodes=${NODE} \n\
+#SBATCH --ntasks=${TASK} \n\
+#SBATCH --cpus-per-task=${CPU} \n\
+#SBATCH --mem=${MEM} \n\
+#SBATCH --qos=${QOS} \n\
+source /home/${usr}/.bashrc \n\
+micromamba activate Workflow_ChIP-like \n""${COMMAND}" | sbatch --parsable --clusters nautilus ${WAIT})
+# Define JOBID and print launching message
+JOBID=`echo ${JOBID} | sed -e "s@;.*@@g"` 
+echo "Submitted batch job ${JOBID} on cluster nautilus"
+# Fill in 0K_REPORT file
+echo -e "${JOBNAME}_${JOBID}" >> ./0K_REPORT.txt
 echo -e "${COMMAND}" | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
+# Define default waiting list for sbatch as empty
 WAIT=''
 
 ## HOMER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -170,11 +183,15 @@ for current_tag in ${1}/*; do
 		current_file=`echo "${i}" | sed -e "s@.*\/@@g" | sed -e "s@\.${F_arg}@@g"`
 		# Define JOBNAME and COMMAND and launch job
 		if [ ${A_arg} == 'true' ]; then
+			# Set up parameters for SLURM ressources
+			TIME='0-01:30:00'; NODE='1'; TASK='1'; CPU='1'; MEM='10g'; QOS='quick'
 			JOBNAME=AnnotatePeaks_"${current_file}"
 			COMMAND="annotatePeaks.pl "${i}" ${2} -gtf ${3} > "${current_tag}"/"${current_file}"_annotated.txt"
 			Launch
 		fi
 		if [ ${M_arg} == 'true' ]; then
+			# Set up parameters for SLURM ressources
+			TIME='0-05:00:00'; NODE='1'; TASK='1'; CPU='1'; MEM='5g'; QOS='short'
 			JOBNAME=AnnotateMotifs_"${current_file}"
 			COMMAND="findMotifsGenome.pl "${i}" ${2} "${current_tag}" -size ${R_arg} -len ${L_arg} -S ${S_arg}"
 			Launch
