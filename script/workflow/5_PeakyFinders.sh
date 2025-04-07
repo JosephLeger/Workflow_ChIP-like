@@ -222,26 +222,40 @@ fi
 ################################################################################################################
 
 ## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module load samtools/1.15.1
-module load bedtools/2.30.0
-module load ucsc-bedgraphtobigwig/377
-
 # Generate REPORT
 echo '#' >> ./0K_REPORT.txt
 date >> ./0K_REPORT.txt
 
 Launch()
 {
-# Launch COMMAND and save report
-echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n""${COMMAND}" | qsub -N "${JOBNAME}" ${WAIT}
-echo -e "${JOBNAME}" >> ./0K_REPORT.txt
+# Launch COMMAND while getting JOBID
+JOBID=$(echo -e "#!/bin/bash \n\
+#SBATCH --job-name=${JOBNAME} \n\
+#SBATCH --output=%x_%j.out \n\
+#SBATCH --error=%x_%j.err \n\
+#SBATCH --time=${TIME} \n\
+#SBATCH --nodes=${NODE} \n\
+#SBATCH --ntasks=${TASK} \n\
+#SBATCH --cpus-per-task=${CPU} \n\
+#SBATCH --mem=${MEM} \n\
+#SBATCH --qos=${QOS} \n\
+source /home/${usr}/.bashrc \n\
+micromamba activate Workflow_ChIP-like \n""${COMMAND}" | sbatch --parsable --clusters nautilus ${WAIT})
+# Define JOBID and print launching message
+JOBID=`echo ${JOBID} | sed -e "s@;.*@@g"` 
+echo "Submitted batch job ${JOBID} on cluster nautilus"
+# Fill in 0K_REPORT file
+echo -e "${JOBNAME}_${JOBID}" >> ./0K_REPORT.txt
 echo -e "${COMMAND}" | sed 's@^@   \| @' >> ./0K_REPORT.txt
 }
+# Define default waiting list for sbatch as empty
 WAIT=''
 
 ## HOMER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set up parameters for SLURM ressources
+TIME='0-01:30:00'; NODE='1'; TASK='1'; CPU='1'; MEM='10g'; QOS='quick'
+
 if [ ${U_arg} == 'HOMER' ]; then
-	module load homer/4.11
 	# Create Tags output directories
 	mkdir -p HOMER/Tags
 	# Initialize SampleSheet
@@ -297,18 +311,19 @@ if [ ${U_arg} == 'HOMER' ]; then
 			JOBNAME="HOMER_makeTag_${tested_tag}"
 			COMMAND="makeTagDirectory HOMER/Tags/${tested_tag} ${tested} -fragLength ${S_arg} -single \n\
 			makeUCSCfile HOMER/Tags/${tested_tag} -o auto"
-			JOBLIST=${JOBLIST}','${JOBNAME}
 			Launch
+			JOBLIST=${JOBLIST}':'${JOBID}
 
 			# 2) makeTag for input file
 			JOBNAME="HOMER_makeTag_${input_tag}"
 			COMMAND="makeTagDirectory HOMER/Tags/${input_tag} ${input} -fragLength ${S_arg} -single \n\
 			makeUCSCfile HOMER/Tags/${input_tag} -o auto"
-			JOBLIST=${JOBLIST}','${JOBNAME}
 			Launch
+			JOBLIST=${JOBLIST}':'${JOBID}
 
-			# 3) Peak Calling unsing both
-			WAIT=`echo ${JOBLIST} | sed -e 's@_,@-hold_jid @'`
+			# 3) Peak Calling using both
+			# Initialize WAIT based on JOBLIST (empty or not)
+			WAIT=`echo ${JOBLIST} | sed -e 's@_@-d afterany@'`
 
 			# Set variables for the run :
 			peaks_txt=HOMER/Peaks/${tested_tag}_Input/${tested_tag}_Input_peaks.txt
@@ -330,9 +345,10 @@ if [ ${U_arg} == 'HOMER' ]; then
 	fi
 
 ## MACS2 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set up parameters for SLURM ressources
+TIME='0-00:30:00'; NODE='1'; TASK='1'; CPU='1'; MEM='5g'; QOS='quick'
+
 elif [ ${U_arg} == 'MACS2' ]; then
-	module load gcc/11.2.0
-	module load macs2/2.2.7.1
 	# Create Tags output directories
 	mkdir -p MACS2/Peaks
 	# Initialize SampleSheet
