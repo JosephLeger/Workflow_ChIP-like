@@ -59,7 +59,9 @@ macs2                       2.2.7.1
 homer                       4.11
 ```
 Install all required tools using :  
-```conda env create -f Workflow_ChIP-like.yaml```
+```
+conda env create -f Workflow_ChIP-like.yaml
+```
   
 ### Project directory
 To start the workflow, create a new directory for the project and put previously downloaded scripts inside. Create a 'Raw' subdirectory and put all the raw FASTQ files inside.  
