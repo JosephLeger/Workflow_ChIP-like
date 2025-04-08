@@ -36,9 +36,10 @@ All required scripts are available in the script folder in this directory.
 To get more information about using these scripts, enter the command ```sh <script.sh> help```.  
   
 ### Environments
-The workflow is encoded in Shell language and is supposed to be launched under a Linux environment.  
-Moreover, it was written to be used on a computing cluster using **Sun Grid Engine (SGE)** with tools already pre-installed in the form of modules. Modules are so loaded using `module load <tool_name>` command. If you use manually installed environments, simply replace module loading in script section by the environment activation command.  
-All script files launch tasks as **qsub** task submission. To successfully complete the workflow, wait for all the jobs in a step to be completed before launching the next one.  
+The workflow is encoded in Shell language and is supposed to be launched under a Linux environment.
+Moreover, it was written to be used on a computing cluster using **Simple Linux Utility for Resource Management (SLURM)** Workload Manager.
+All script files launch tasks as **sbatch** task submission. To successfully complete the workflow, wait for all the jobs in a step to be completed before launching the next one.
+You have to install all required tools in a conda environment using provided provided [Workflow_ChIP-like.yaml](https://github.com/JosephLeger/Workflow_ChIP-like/blob/main/Workflow_ChIP-like.yaml) reciept file.  
  
 ### Requirements
 ```
@@ -51,13 +52,15 @@ bowtie2                     2.5.1
 samtools                    1.15.1
 picard                      2.23.5
 bedtools                    2.30.0
-deeptools                   3.5.0
+deeptools                   3.5.4
 ucsc-bedgraphtobigwig       377
 gcc                         11.2.0
 macs2                       2.2.7.1
 homer                       4.11
 ```
-
+Install all required tools using :  
+```conda env create -f Workflow_ChIP-like.yaml```
+  
 ### Project directory
 To start the workflow, create a new directory for the project and put previously downloaded scripts inside. Create a 'Raw' subdirectory and put all the raw FASTQ files inside.  
 Raw FASTQ files must be compressed in '.fq.gz' or '.fastq.gz' format. If it is not the case, you need to compress them using ```gzip Raw/*.fastq```.  
@@ -101,6 +104,10 @@ First, you need to download reference genome FASTA file and annotaion GTF file i
 # Example with mouse genome from Ensembl.org
 wget https://ftp.ensembl.org/pub/release-108/fasta/mus_musculus/dna/Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz
 wget https://ftp.ensembl.org/pub/release-108/gtf/mus_musculus/Mus_musculus.GRCm39.108.gtf.gz
+
+# Unzip downloaded files
+gunzip Mus_musculus.GRCm39.dna_sm.primary_assembly.fa.gz
+gunzip Mus_musculus.GRCm39.108.gtf.gz
 ```
 Then, create a directory for the reference and use provided scripts from the ./script/refindex folder of this repository.  
 
