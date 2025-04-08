@@ -5,6 +5,9 @@
 ################################################################################################################
 script_name='Bowtie2_refindex.sh'
 
+# Get user id for custom manual pathways
+usr=`id | sed -e 's@).*@@g' | sed -e 's@.*(@@g'`
+
 # Text font variabes
 END='\033[0m'
 BOLD='\033[1m'
@@ -52,7 +55,36 @@ fi
 ################################################################################################################
 
 ## SETUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module load bowtie2/2.5.1
+Launch()
+{
+# Launch COMMAND while getting JOBID
+JOBID=$(echo -e "#!/bin/bash \n\
+#SBATCH --job-name=${JOBNAME} \n\
+#SBATCH --output=%x_%j.out \n\
+#SBATCH --error=%x_%j.err \n\
+#SBATCH --time=${TIME} \n\
+#SBATCH --nodes=${NODE} \n\
+#SBATCH --ntasks=${TASK} \n\
+#SBATCH --cpus-per-task=${CPU} \n\
+#SBATCH --mem=${MEM} \n\
+#SBATCH --qos=${QOS} \n\
+source /home/${usr}/.bashrc \n\
+micromamba activate Workflow_ChIP-like \n""${COMMAND}" | sbatch --parsable --clusters nautilus ${WAIT})
+# Define JOBID and print launching message
+JOBID=`echo ${JOBID} | sed -e "s@;.*@@g"` 
+echo "Submitted batch job ${JOBID} on cluster nautilus"
+# Fill in 0K_REPORT file
+echo -e "${JOBNAME}_${JOBID}" >> ./0K_REPORT.txt
+echo -e "${COMMAND}" | sed 's@^@   \| @' >> ./0K_REPORT.txt
+}
+# Define default waiting list for sbatch as empty
+WAIT=''
 
-echo -e "#$ -V \n#$ -cwd \n#$ -S /bin/bash \n\
-bowtie2-build -f $1 $2" | qsub -N STAR_RefIndex
+## BOWTIE2 INDEX - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set up parameters for SLURM ressources
+TIME='0-00:30:00'; NODE='1'; TASK='1'; CPU='1'; MEM='10g'; QOS='quick'
+
+# Define JOBNAME and COMMAND and launch job
+JOBNAME="Bowtie2_RefIndex_${2}"
+COMMAND="bowtie2-build -f ${1} ${2}"
+Launch
