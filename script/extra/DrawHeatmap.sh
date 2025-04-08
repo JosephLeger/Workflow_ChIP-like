@@ -268,3 +268,4 @@ plotHeatmap -m $1'/'${O_arg}'.gz' \
 --outFileSortedRegions $1'/'${O_arg}'_plotted.bed' \
 ${K_arg}"
 Launch
+
