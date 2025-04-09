@@ -172,10 +172,10 @@ model=`echo $3 | sed -r 's/^.*\/(.*)$/\1/'`
 mkdir -p ./Mapped/${model}/{BAM,STAT}
 
 ## BOWTIE2 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set up parameters for SLURM ressources
-TIME='0-01:00:00'; NODE='1'; TASK='1'; CPU='4'; MEM='10g'; QOS='quick'
-
 if [ $1 == "SE" ]; then
+	# Set up parameters for SLURM ressources
+	TIME='0-01:00:00'; NODE='1'; TASK='1'; CPU='4'; MEM='10g'; QOS='quick'
+
 	# Initialize JOBLIST to wait before running MultiQC
 	JOBLIST='_'
 	# Precise to eliminate empty lists for the loop
@@ -198,6 +198,9 @@ if [ $1 == "SE" ]; then
 	loc_rate='6p'
 
 elif [ $1 == "PE" ]; then
+	# Set up parameters for SLURM ressources
+	TIME='0-01:30:00'; NODE='1'; TASK='1'; CPU='4'; MEM='10g'; QOS='quick'
+
 	# Initialize JOBLIST to wait before running MultiQC
 	JOBLIST='_'
 	# Precise to eliminate empty lists for the loop
