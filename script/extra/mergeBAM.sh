@@ -120,7 +120,7 @@ elif [ ${A_arg} == 'None' ] && [ $# -ne 2 ]; then
 	exit
 elif [ $(ls $1/*${N_arg}*.bam 2>/dev/null | wc -l) -lt 1 ]; then
 	# Error if provided directory is empty or does not exists
-	echo "Error : can not find files to merge in ${input} directory. Please make sure the provided input directory exists, and contains correct .bam files."
+	echo "Error : can not find files in ${input} directory. Please make sure the provided input directory exists, and contains correct .bam files."
 	exit
 fi
 
