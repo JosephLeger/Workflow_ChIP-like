@@ -23,7 +23,7 @@ ${BOLD}SYNTHAX${END}\n\
 ${BOLD}DESCRIPTION${END}\n\
 	Merge BAM files matching a pattern into a unique BAM file and index it using samtools.\n\
 	Can be used before calling peaks on an accumulation of experiments to have higher signals.\n\
-	It requires sample information in a provided .csv file (see example_sheet_sample.csv).\n\n\
+	It requires sample information in a provided .csv file (see Example_FileTable.csv).\n\n\
 
 ${BOLD}OPTIONS${END}\n\
 	${BOLD}-N${END} ${UDL}suffix${END}, ${BOLD}N${END}amePattern\n\
