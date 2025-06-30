@@ -84,10 +84,15 @@ shift $((OPTIND-1))
 if [ $# -eq 1 ] && [ $1 == "help" ]; then
 	Help
 	exit
-elif [ $# -ne 4 ]; then
+elif [ $# -lt 4 ]; then
 	# Error if inoccrect number of agruments is provided
 	echo "378871312507674"
 	echo "Something is missing..."
+	exit
+elif [ $# -gt 4 ]; then
+	# Error if inoccrect number of agruments is provided
+	echo "Error synthax : please use following synthax"
+	echo "       sh ${script_name} [options] <input_dir> <fatsa_file> <gtf_file> <motif_file>"
 	exit
 elif [ $(ls $1/*/*${N_arg}*.${F_arg} 2>/dev/null | wc -l) -lt 1 ]; then
 	# Error if provided directory is empty or does not exists
