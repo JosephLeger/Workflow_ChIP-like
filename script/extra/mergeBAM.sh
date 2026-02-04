@@ -44,7 +44,7 @@ ${BOLD}ARGUMENTS${END}\n\
 	${BOLD}<file_table.csv>${END}\n\
 		Path to .csv file containing sample information stored in 3 columns : 
   			1) File_ID [not used by this script]
-     			2) Filename (unique patterns to identify used files) 
+     		2) Filename (unique patterns to identify used files) 
 			3) Condition (files sharing the same Condition will be merged together)\n\n\
    		
 ${BOLD}EXAMPLE USAGE${END}\n\
