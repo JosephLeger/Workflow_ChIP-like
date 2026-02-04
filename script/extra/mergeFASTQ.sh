@@ -28,7 +28,7 @@ ${BOLD}ARGUMENTS${END}\n\
 	${BOLD}<file_table.csv>${END}\n\
 		Path to .csv file containing sample information stored in 3 columns : 
   			1) File_ID (unique patterns to identify raw files) 
-     			2) Filename (used as filenames for merged files) 
+     		2) Filename (used as filenames for merged files) 
 			3) Condition [not used by this script]\n\n\
 
 ${BOLD}EXAMPLE USAGE${END}\n\
